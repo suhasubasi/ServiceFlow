@@ -86,4 +86,49 @@ public class TicketServiceTests
         // Assert
         Assert.Null(found);
     }
+
+    [Fact]
+    public void GetByStatus_ShouldReturnOnlyMatchingTickets()
+    {
+        // Arrange
+        var service = new TicketService();
+
+
+        var ticket1 = new ServiceTicket(
+            "Fix printer",
+            "Printer not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m)
+        );
+
+        var ticket2 = new ServiceTicket(
+            "Install software",
+            "Need Visual Studio",
+            "customer-2",
+            TicketPriority.Low,
+            new Money(200m)
+        );
+
+        var ticket3 = new ServiceTicket(
+            "Fix network",
+            "Wi-Fi is down",
+            "customer-3",
+            TicketPriority.Critical,
+            new Money(1000m)
+        );
+
+
+        service.Add(ticket1);
+        service.Add(ticket2);
+        service.Add(ticket3);
+
+        // Act - assign ticket1 so it becomes InProgress
+        ticket1.Assign("Anna");
+
+        // Assert 
+        Assert.Equal(2, service.GetByStatus(TicketStatus.Open).Count);
+        Assert.Equal(1, service.GetByStatus(TicketStatus.InProgress).Count);
+
+    }
 }
