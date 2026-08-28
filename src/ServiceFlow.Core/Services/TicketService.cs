@@ -44,4 +44,19 @@ public class TicketService
 
         return results;
     }
+
+    public bool Remove(Guid id)
+    {
+        for (int i = 0; i < tickets.Count; i++)
+        {
+            if (tickets[i].Id == id)
+            {
+                tickets.RemoveAt(i);
+                return true;
+            }
+        }
+
+        return false;
+
+    }
 }

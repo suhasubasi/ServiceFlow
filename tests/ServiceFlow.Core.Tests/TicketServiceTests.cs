@@ -131,4 +131,41 @@ public class TicketServiceTests
         Assert.Equal(1, service.GetByStatus(TicketStatus.InProgress).Count);
 
     }
+
+    [Fact]
+    public void Remove_ShouldRemoveTicket_WhenFound()
+    {
+        // Arrange
+        var service = new TicketService();
+        var ticket = new ServiceTicket(
+            "Fix printer",
+            "Printer not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m)
+        );
+
+        service.Add(ticket);
+
+        // Act
+        bool removed = service.Remove(ticket.Id);
+
+        // Assert 
+        Assert.True(removed);
+        Assert.Equal(0, service.GetAll().Count);
+    }
+
+    [Fact]
+    public void Remove_ShouldReturnFalse_WhenNotFound()
+    {
+        // Arrange 
+        var service = new TicketService();
+
+        // Act 
+        bool removed = service.Remove(Guid.NewGuid());
+
+        // Assert 
+        Assert.False(removed);
+
+    }
 }
