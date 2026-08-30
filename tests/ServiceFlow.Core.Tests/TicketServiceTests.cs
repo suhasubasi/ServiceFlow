@@ -23,7 +23,7 @@ public class TicketServiceTests
         service.Add(ticket);
 
         // Assert
-        Assert.Equal(1, service.GetAll().Count);
+        Assert.Single(service.GetAll());
     }
 
     [Fact]
@@ -71,6 +71,7 @@ public class TicketServiceTests
         var found = service.GetById(ticket.Id);
 
         // Assert
+        Assert.NotNull(found);
         Assert.Equal("Fix printer", found.Title);
     }
 
@@ -128,7 +129,7 @@ public class TicketServiceTests
 
         // Assert 
         Assert.Equal(2, service.GetByStatus(TicketStatus.Open).Count);
-        Assert.Equal(1, service.GetByStatus(TicketStatus.InProgress).Count);
+        Assert.Single(service.GetByStatus(TicketStatus.InProgress));
 
     }
 
@@ -152,7 +153,7 @@ public class TicketServiceTests
 
         // Assert 
         Assert.True(removed);
-        Assert.Equal(0, service.GetAll().Count);
+        Assert.Empty(service.GetAll());
     }
 
     [Fact]
@@ -168,4 +169,125 @@ public class TicketServiceTests
         Assert.False(removed);
 
     }
+
+    [Fact]
+    public void GetByCustomerId_ShouldReturnOnlyMatchingTickets()
+    {
+        // Arrange
+        var service = new TicketService();
+
+        var ticket1 = new ServiceTicket(
+            "Fix printer",
+            "Printer not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m)
+        );
+
+        var ticket2 = new ServiceTicket(
+            "Install software",
+            "Need Visual Studio",
+            "customer-2",
+            TicketPriority.Low,
+            new Money(200m)
+        );
+
+        var ticket3 = new ServiceTicket(
+            "Fix network",
+            "Wi-Fi is down",
+            "customer-1",
+            TicketPriority.Critical,
+            new Money(1000m)
+        );
+
+
+        service.Add(ticket1);
+        service.Add(ticket2);
+        service.Add(ticket3);
+
+        // Act
+        var results = service.GetByCustomerId("customer-1");
+
+        // Assert 
+        Assert.Equal(2, results.Count);
+    }
+
+    [Fact]
+    public void GetByCustomerId_ShouldReturnEmptyList_WhenNoMatch()
+    {
+        // Arrange
+        var service = new TicketService();
+
+        var ticket = new ServiceTicket(
+            "Fix printer",
+            "Printer not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m)
+        );
+
+        service.Add(ticket);
+
+        // Act 
+        var results = service.GetByCustomerId("customer-999");
+
+        // Assert
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public void GetByPriority_ShouldReturnOnlyMatchingTickets()
+    {
+        // Arrange
+        var service = new TicketService();
+        
+        var ticket1 = new ServiceTicket(
+            "Fix printer",
+            "Printer not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m)
+        );
+        var ticket2 = new ServiceTicket(
+            "Install software",
+            "Need Visual Studio",
+            "customer-2",
+            TicketPriority.Low,
+            new Money(200m)
+        );
+        var ticket3 = new ServiceTicket(
+            "Replace monitor",
+            "Monitor is broken",
+            "customer-3",
+            TicketPriority.High,
+            new Money(800m)
+        );
+        service.Add(ticket1);
+        service.Add(ticket2);
+        service.Add(ticket3);
+        // Act
+        var results = service.GetByPriority(TicketPriority.High);
+        // Assert
+        Assert.Equal(2, results.Count);
+    }
+    [Fact]
+    public void GetByPriority_ShouldReturnEmptyList_WhenNoMatch()
+    {
+        // Arrange
+        var service = new TicketService();
+        var ticket = new ServiceTicket(
+            "Fix printer",
+            "Printer not working",
+            "customer-1",
+            TicketPriority.Low,
+            new Money(500m)
+        );
+        service.Add(ticket);
+        // Act
+        var results = service.GetByPriority(TicketPriority.Critical);
+        // Assert
+        Assert.Empty(results);
+    }
+
+
 }

@@ -45,6 +45,36 @@ public class TicketService
         return results;
     }
 
+    public List<ServiceTicket> GetByCustomerId(string customerId)
+    {
+        var results = new List<ServiceTicket>();
+
+        for (int i = 0; i < tickets.Count; i++)
+        {
+            if (tickets[i].CustomerId == customerId)
+            {
+                results.Add(tickets[i]);
+            }
+        }
+
+        return results;
+    }
+
+    public List<ServiceTicket> GetByPriority(TicketPriority priority)
+    {
+        var results = new List<ServiceTicket>();
+
+        for (int i = 0; i < tickets.Count; i++)
+        {
+            if (tickets[i].Priority == priority)
+            {
+                results.Add(tickets[i]);
+            }
+        }
+
+        return results;
+    }
+
     public bool Remove(Guid id)
     {
         for (int i = 0; i < tickets.Count; i++)
