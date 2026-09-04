@@ -31,12 +31,22 @@ public class ServiceTicket
 
     public void Assign(string engineerName)
     {
+        if (Status == TicketStatus.Closed)
+        {
+            return;
+        }
+
         AssignedTo = engineerName;
         Status = TicketStatus.InProgress;
     }
 
     public void Resolve()
     {
+        if (Status == TicketStatus.Closed)
+        {
+            return;
+        }
+
         Status = TicketStatus.Resolved;
     }
 
@@ -44,4 +54,4 @@ public class ServiceTicket
     {
         Status = TicketStatus.Closed;
     }
-}
+}

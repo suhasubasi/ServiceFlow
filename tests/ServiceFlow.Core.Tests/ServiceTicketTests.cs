@@ -78,4 +78,44 @@ public class ServiceTicketTests
         // Assert
         Assert.Equal(TicketStatus.Closed, ticket.Status);
     }
+
+    [Fact]
+    public void Assign_ShouldNotChangeStatus_WhenTicketIsClosed()
+    {
+        // Arrange
+        var ticket = new ServiceTicket(
+            "Fix printer",
+            "Printer on 2nd floor is not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m));
+        ticket.Close();
+
+        // Act
+        ticket.Assign("Anna");
+
+        // Assert
+        Assert.Equal(TicketStatus.Closed, ticket.Status);
+        Assert.Equal("", ticket.AssignedTo);
+    }
+
+    [Fact]
+    public void Resolve_ShouldNotChangeStatus_WhenTicketIsClosed()
+    {
+        // Arrange
+        var ticket = new ServiceTicket(
+            "Fix printer",
+            "Printer on 2nd floor is not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m));
+        ticket.Close();
+
+        // Act
+        ticket.Resolve();
+
+        // Assert
+        Assert.Equal(TicketStatus.Closed, ticket.Status);
+    }
 }
+
