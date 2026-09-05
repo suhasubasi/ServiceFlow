@@ -75,6 +75,22 @@ public class TicketService
         return results;
     }
 
+    public List<ServiceTicket> GetByEmployeeId(Guid employeeId)
+    {
+        var results = new List<ServiceTicket>();
+
+        for (int i = 0; i < tickets.Count; i++)
+        {
+            if (tickets[i].AssignedEmployeeId == employeeId)
+            {
+                results.Add(tickets[i]);
+            }
+        }
+
+        return results;
+    }
+
+
     public bool Remove(Guid id)
     {
         for (int i = 0; i < tickets.Count; i++)

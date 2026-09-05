@@ -6,6 +6,7 @@ namespace ServiceFlow.Core.Entities;
 public class ServiceTicket
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid? AssignedEmployeeId { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
     public string CustomerId { get; set; }
@@ -37,6 +38,18 @@ public class ServiceTicket
         }
 
         AssignedTo = engineerName;
+        Status = TicketStatus.InProgress;
+    }
+
+    public void Assign(Employee employee)
+    {
+        if (Status == TicketStatus.Closed)
+        {
+            return;
+        }
+
+        AssignedEmployeeId = employee.Id;
+        AssignedTo = employee.FullName;
         Status = TicketStatus.InProgress;
     }
 

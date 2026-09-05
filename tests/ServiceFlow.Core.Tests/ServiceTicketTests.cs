@@ -117,5 +117,26 @@ public class ServiceTicketTests
         // Assert
         Assert.Equal(TicketStatus.Closed, ticket.Status);
     }
+
+    [Fact]
+    public void Assign_WithEmployee_ShouldSetEmployeeDetailsAndStatus()
+    {
+        // Arrange
+        var ticket = new ServiceTicket(
+            "Fix printer",
+            "Printer on 2nd floor is not working",
+            "customer-1",
+            TicketPriority.High,
+            new Money(500m));
+        var employee = new Employee("John Wick", "jongwick@example.com", "IT Support");
+
+        // Act
+        ticket.Assign(employee);
+
+        // Assert
+        Assert.Equal(employee.Id, ticket.AssignedEmployeeId);
+        Assert.Equal("John Wick", ticket.AssignedTo);
+        Assert.Equal(TicketStatus.InProgress, ticket.Status);
+    }
 }
 

@@ -289,5 +289,47 @@ public class TicketServiceTests
         Assert.Empty(results);
     }
 
+        [Fact]
+    public void GetByEmployeeId_ShouldReturnOnlyMatchingTickets()
+    {
+        // Arrange
+        var service = new TicketService();
+        var employee1 = new Employee("Paul Walker", "paul@serviceflow.se", "Field Service");
+        var employee2 = new Employee("Michelle Rodriguez", "michelle@serviceflow.se", "IT Support");
+
+        var ticket1 = new ServiceTicket("Fix printer", "Desc", "cust-1", TicketPriority.Low, new Money(100m));
+        var ticket2 = new ServiceTicket("Fix server", "Desc", "cust-2", TicketPriority.High, new Money(500m));
+        var ticket3 = new ServiceTicket("Setup PC", "Desc", "cust-3", TicketPriority.Medium, new Money(250m));
+
+        ticket1.Assign(employee1);
+        ticket2.Assign(employee2);
+        ticket3.Assign(employee1);
+
+        service.Add(ticket1);
+        service.Add(ticket2);
+        service.Add(ticket3);
+
+        // Act
+        var results = service.GetByEmployeeId(employee1.Id);
+
+        // Assert
+        Assert.Equal(2, results.Count);
+    }
+
+    [Fact]
+    public void GetByEmployeeId_ShouldReturnEmptyList_WhenNoMatch()
+    {
+        // Arrange
+        var service = new TicketService();
+        var ticket = new ServiceTicket("Fix printer", "Desc", "cust-1", TicketPriority.Low, new Money(100m));
+        service.Add(ticket);
+
+        // Act
+        var results = service.GetByEmployeeId(Guid.NewGuid());
+
+        // Assert
+        Assert.Empty(results);
+    }
+
 
 }
