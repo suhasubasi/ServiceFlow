@@ -1,6 +1,63 @@
-@ServiceFlow.Api_HostAddress = http://localhost:5021
+@baseUrl = http://localhost:5021
 
-GET {{ServiceFlow.Api_HostAddress}}/weatherforecast/
+################################################
+# 1. CUSTOMERS
+################################################
+
+### 1. Get All Customers
+GET {{baseUrl}}/api/customers
 Accept: application/json
 
-###
+### 2. Create a Customer (Local Design Studio)
+POST {{baseUrl}}/api/customers
+Content-Type: application/json
+
+{
+  "fullName": "Anna Lindberg",
+  "email": "anna@nordicdesign.se",
+  "phoneNumber": "072-3456789",
+  "companyName": "Nordic Design Studio"
+}
+
+
+################################################
+# 2. EMPLOYEES (Support Team)
+################################################
+
+### 3. Get All Employees
+GET {{baseUrl}}/api/employees
+Accept: application/json
+
+### 4. Create an IT Support Technician
+POST {{baseUrl}}/api/employees
+Content-Type: application/json
+
+{
+  "fullName": "Mikael Blom",
+  "email": "mikael@serviceflow.se",
+  "department": "IT & Hardware Support"
+}
+
+
+################################################
+# 3. TICKETS (Everyday IT Issues)
+################################################
+
+### 5. Get All Tickets
+GET {{baseUrl}}/api/tickets
+Accept: application/json
+
+### 6. Create a Service Ticket (Broken Laptop Screen)
+# Hint: Copy the "id" from request #2 (Anna) and paste it into customerId below!
+POST {{baseUrl}}/api/tickets
+Content-Type: application/json
+
+{
+  "title": "Laptop Screen Cracked and Flickering",
+  "description": "Dell Latitude screen dropped during client meeting. Screen flickering and HDMI port loose.",
+  "customerId": "PASTE_ANNA_CUSTOMER_ID_HERE",
+  "priority": 2,
+  "estimatedCostAmount": 3400
+}
+
+
