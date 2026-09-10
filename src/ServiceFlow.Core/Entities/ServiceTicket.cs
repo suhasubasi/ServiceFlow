@@ -16,6 +16,15 @@ public class ServiceTicket
     public Money EstimatedCost { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+    private ServiceTicket()
+    {
+        Title = string.Empty;
+        Description = string.Empty;
+        CustomerId = string.Empty;
+        Priority = TicketPriority.Low;
+        EstimatedCost = new Money(0, "SEK");
+    }
+
     public ServiceTicket(
         string title,
         string description,

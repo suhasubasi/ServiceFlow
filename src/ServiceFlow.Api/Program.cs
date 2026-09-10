@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using ServiceFlow.Core.Services;
+using ServiceFlow.Core.Interfaces;
+using ServiceFlow.Infrastructure.Services;
 using ServiceFlow.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +17,9 @@ builder.Services.AddDbContext<ServiceFlowDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 4. Register Domain Services as Scoped (one instance per HTTP request)
-builder.Services.AddScoped<CustomerService>();
-builder.Services.AddScoped<EmployeeService>();
-builder.Services.AddScoped<TicketService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 
 var app = builder.Build();
 

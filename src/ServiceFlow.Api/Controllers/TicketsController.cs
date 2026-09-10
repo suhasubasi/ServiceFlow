@@ -1,9 +1,7 @@
-using System.Data.SqlTypes;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using ServiceFlow.Api.DTOs;
 using ServiceFlow.Core.Entities;
-using ServiceFlow.Core.Services;
+using ServiceFlow.Core.Interfaces;
 using ServiceFlow.Core.ValueObjects;
 
 namespace ServiceFlow.Api.Controllers;
@@ -12,10 +10,10 @@ namespace ServiceFlow.Api.Controllers;
 [Route("api/[controller]")]
 public class TicketsController : ControllerBase
 {
-    private readonly TicketService _ticketService;
-    private readonly EmployeeService _employeeService;
+    private readonly ITicketService _ticketService;
+    private readonly IEmployeeService _employeeService;
 
-    public TicketsController(TicketService ticketService, EmployeeService employeeService)
+    public TicketsController(ITicketService ticketService, IEmployeeService employeeService)
     {
         _ticketService = ticketService;
         _employeeService = employeeService;
@@ -23,17 +21,17 @@ public class TicketsController : ControllerBase
 
     // GET: api/tickets
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var tickets = _ticketService.GetAll();
+        var tickets = await _ticketService.GetAllAsync();
         return Ok(tickets);
     }
 
     // GET: api/tickets/{id}
     [HttpGet("{id}")]
-    public IActionResult GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var ticket = _ticketService.GetById(id);
+        var ticket = await _ticketService.GetByIdAsync(id);
         if (ticket == null)
         {
             return NotFound($"Ticket with ID {id} was not found.");
@@ -44,24 +42,24 @@ public class TicketsController : ControllerBase
 
     // GET: api/tickets/customer/{customerId}
     [HttpGet("customer/{customerId}")]
-    public IActionResult GetByCustomerId(string customerId)
+    public async Task<IActionResult> GetByCustomerId(string customerId)
     {
-        var tickets = _ticketService.GetByCustomerId(customerId);
+        var tickets = await _ticketService.GetByCustomerIdAsync(customerId);
         return Ok(tickets);
     }
 
     // GET: api/tickets/employee/{employeeId}
     [HttpGet("employee/{employeeId}")]
-    public IActionResult GetByEmployeeId(Guid employeeId)
+    public async Task<IActionResult> GetByEmployeeId(Guid employeeId)
     {
-        var tickets = _ticketService.GetByEmployeeId(employeeId);
+        var tickets = await _ticketService.GetByEmployeeIdAsync(employeeId);
         return Ok(tickets);
     }
 
 
     // POST: api/tickets
     [HttpPost]
-    public IActionResult Create([FromBody] CreateTicketRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
     {
         // 1. Convert DTO to Domain Entity
         var ticket = new ServiceTicket(
@@ -73,7 +71,7 @@ public class TicketsController : ControllerBase
         );
 
         // 2. Save into our in-memory service
-        _ticketService.Add(ticket);
+        await _ticketService.AddAsync(ticket);
 
         // 3. Return 201 Created with link to GetById
         return CreatedAtAction(nameof(GetById), new { id = ticket.Id},ticket);
@@ -82,60 +80,63 @@ public class TicketsController : ControllerBase
 
     // PUT: api/tickets/{id}/assign
     [HttpPut("{id}/assign")]
-    public IActionResult Assign(Guid id, [FromBody] AssignTicketRequest request)
+    public async Task<IActionResult> Assign(Guid id, [FromBody] AssignTicketRequest request)
     {
-        var ticket = _ticketService.GetById(id);
+        var ticket = await _ticketService.GetByIdAsync(id);
         if (ticket == null)
         {
             return NotFound($"Ticket with ID {id} was not found.");
         }
 
-        var employee = _employeeService.GetById(request.EmployeeId);
+        var employee = await _employeeService.GetByIdAsync(request.EmployeeId);
         if (employee == null)
         {
             return NotFound($"Employee with ID {request.EmployeeId} was not found.");
         }
 
         ticket.Assign(employee);
+        await _ticketService.UpdateAsync();
         return Ok(ticket);
         
     }
 
     // PUT: api/tickets/{id}/resolve
     [HttpPut("{id}/resolve")]
-    public IActionResult Resolve(Guid id)
+    public async Task<IActionResult> Resolve(Guid id)
     {
-        var ticket = _ticketService.GetById(id);
+        var ticket = await _ticketService.GetByIdAsync(id);
         if (ticket == null)
         {
             return NotFound($"Ticket with ID {id} was not found.");
         }
 
         ticket.Resolve();
+        await _ticketService.UpdateAsync();
         return Ok(ticket);
     }
 
     // PUT: api/tickets/{id}/close
     [HttpPut("{id}/close")]
-    public IActionResult Close(Guid id)
+    public async Task<IActionResult> Close(Guid id)
     {
-        var ticket = _ticketService.GetById(id);
+        var ticket = await _ticketService.GetByIdAsync(id);
         if (ticket == null)
         {
             return NotFound($"Ticket with ID {id} was not found.");
         }
 
         ticket.Close();
+        await _ticketService.UpdateAsync();
         return Ok(ticket);
     }
 
 
     // DELETE: api/tickets/{id}
     [HttpDelete("{id}")]
-    public IActionResult Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         // 1. Call the service, this returns a bool: true or false
-        bool removed = _ticketService.Remove(id);
+        bool removed = await _ticketService.RemoveAsync(id);
 
         // 2. If it returned false, tell the client HTTP 404 (Not Found)
         if (!removed)

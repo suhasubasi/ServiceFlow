@@ -55,7 +55,7 @@ Content-Type: application/json
 {
   "title": "Laptop Screen Cracked and Flickering",
   "description": "Dell Latitude screen dropped during client meeting. Screen flickering and HDMI port loose.",
-  "customerId": "PASTE_ANNA_CUSTOMER_ID_HERE",
+  "customerId": "a69ad746-f3cb-41a9-872a-56bb06cd1205",
   "priority": 2,
   "estimatedCostAmount": 3400
 }

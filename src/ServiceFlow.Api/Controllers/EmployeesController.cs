@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ServiceFlow.Api.DTOs;
 using ServiceFlow.Core.Entities;
-using ServiceFlow.Core.Services;
+using ServiceFlow.Core.Interfaces;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -9,26 +9,26 @@ namespace ServiceFlow.Api.Controllers;
 [Route("api/[controller]")]
 public class EmployeesController : ControllerBase
 {
-    private readonly EmployeeService _employeeService;
+    private readonly IEmployeeService _employeeService;
 
-    public EmployeesController(EmployeeService employeeService)
+    public EmployeesController(IEmployeeService employeeService)
     {
         _employeeService = employeeService;
     }
 
     // GET: api/employees
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var employees = _employeeService.GetAll();
+        var employees = await _employeeService.GetAllAsync();
         return Ok(employees);
     }
 
     // GET: api/employees/{id}
     [HttpGet("{id}")]
-    public IActionResult GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var employee = _employeeService.GetById(id);
+        var employee = await _employeeService.GetByIdAsync(id);
         if (employee == null )
         {
             return NotFound($"Employee with ID {id} was not found.");
@@ -39,7 +39,7 @@ public class EmployeesController : ControllerBase
 
     // POST: api/employees
     [HttpPost]
-    public IActionResult Create([FromBody] CreateEmployeeRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateEmployeeRequest request)
     {
         
         var employee = new Employee (
@@ -48,7 +48,7 @@ public class EmployeesController : ControllerBase
             request.Department
         );
         
-        _employeeService.Add(employee);
+        await _employeeService.AddAsync(employee);
 
         return CreatedAtAction(nameof(GetById), new { id = employee.Id }, employee);
 

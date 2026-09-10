@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ServiceFlow.Api.DTOs;
 using ServiceFlow.Core.Entities;
-using ServiceFlow.Core.Services;
+using ServiceFlow.Core.Interfaces;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -9,37 +9,38 @@ namespace ServiceFlow.Api.Controllers;
 [Route("api/[controller]")]
 public class CustomersController : ControllerBase
 {
-    private readonly CustomerService _customerService;
+    private readonly ICustomerService _customerService;
 
-    public CustomersController(CustomerService customerService)
+    public CustomersController(ICustomerService customerService)
     {
         _customerService = customerService;
     }
 
     // GET: api/customers
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var customers = _customerService.GetAll();
+        var customers = await _customerService.GetAllAsync();
         return Ok(customers);
     }
 
     // GET: api/customers/{id}
     [HttpGet("{id}")]
-    public IActionResult GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var customers = _customerService.GetById(id);
+        var customers = await _customerService.GetByIdAsync(id);
         if(customers == null)
         {
             return NotFound($"Customer with ID {id} was not found.");
         }
+
         return Ok(customers);
     }
 
 
     // POST: api/customers
     [HttpPost]
-    public IActionResult Create([FromBody] CreateCustomerRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateCustomerRequest request)
     {
         
         var customer = new Customer(
@@ -49,7 +50,7 @@ public class CustomersController : ControllerBase
             request.CompanyName
         );
     
-        _customerService.Add(customer);
+        await _customerService.AddAsync(customer);
 
         return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
     }
