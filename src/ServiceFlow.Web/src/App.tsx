@@ -7,18 +7,40 @@ import {
   Trash2, 
   Check, 
   Archive,
-  RefreshCw 
+  RefreshCw,
+  Plus,
+  X
 } from 'lucide-react'
-import type { ServiceTicket } from './types'
+import type { ServiceTicket, Customer } from './types'
 import { TicketStatus, TicketPriority } from './types'
-import { getTickets, resolveTicket, closeTicket, deleteTicket } from './api'
+import { 
+  getTickets, 
+  getCustomers, 
+  createTicket, 
+  resolveTicket, 
+  closeTicket, 
+  deleteTicket 
+} from './api'
 
 function App() {
+  // 1. Dashboard State
   const [tickets, setTickets] = useState<ServiceTicket[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // 1. Fetch tickets from C# API on page load
+  // 2. Modal & Form State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [submitting, setSubmitting] = useState(false)
+
+  // Form Fields
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [customerId, setCustomerId] = useState('')
+  const [priority, setPriority] = useState<TicketPriority>(TicketPriority.Medium)
+  const [estimatedCost, setEstimatedCost] = useState<number>(500)
+
+  // 3. Fetch tickets from C# API on page load
   const loadTickets = async () => {
     try {
       setLoading(true)
@@ -32,11 +54,64 @@ function App() {
     }
   }
 
+  // 4. Open Modal & Load Customers for Dropdown
+  const openCreateModal = async () => {
+    setIsModalOpen(true)
+    try {
+      const customerData = await getCustomers()
+      setCustomers(customerData)
+      // Pre-select the first customer if available
+      if (customerData.length > 0 && !customerId) {
+        setCustomerId(customerData[0].id)
+      }
+    } catch (err) {
+      console.error('Could not load customers for dropdown', err)
+    }
+  }
+
+  // 5. Close Modal & Reset Form
+  const closeCreateModal = () => {
+    setIsModalOpen(false)
+    setTitle('')
+    setDescription('')
+    setCustomerId('')
+    setPriority(TicketPriority.Medium)
+    setEstimatedCost(500)
+  }
+
   useEffect(() => {
     loadTickets()
   }, [])
 
-  // 2. Action: Resolve a ticket
+  // 6. Action: Create Ticket (Form Submit)
+  const handleCreateTicket = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!title.trim()) {
+      alert('Please enter a ticket title.')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      await createTicket({
+        title: title.trim(),
+        description: description.trim(),
+        customerId: customerId.trim() || 'General Customer',
+        priority: Number(priority) as TicketPriority,
+        estimatedCostAmount: Number(estimatedCost) || 0
+      })
+
+      closeCreateModal()
+      await loadTickets() // Refresh ticket grid from database
+    } catch (err) {
+      alert('Failed to create ticket. Make sure the backend API is running.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // 7. Action: Resolve a ticket
   const handleResolve = async (id: string) => {
     try {
       await resolveTicket(id)
@@ -46,7 +121,7 @@ function App() {
     }
   }
 
-  // 3. Action: Close a ticket
+  // 8. Action: Close a ticket
   const handleClose = async (id: string) => {
     try {
       await closeTicket(id)
@@ -56,7 +131,7 @@ function App() {
     }
   }
 
-  // 4. Action: Delete a ticket
+  // 9. Action: Delete a ticket
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this ticket?')) return
     try {
@@ -105,7 +180,7 @@ function App() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 text-white p-2 rounded-lg">
+            <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm">
               <Wrench className="w-6 h-6" />
             </div>
             <div>
@@ -113,13 +188,22 @@ function App() {
               <p className="text-xs text-slate-500">Service Desk & Dispatch Management</p>
             </div>
           </div>
-          <button
-            onClick={loadTickets}
-            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-md transition"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-lg shadow-sm transition"
+            >
+              <Plus className="w-4 h-4" />
+              New Ticket
+            </button>
+            <button
+              onClick={loadTickets}
+              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+          </div>
         </div>
       </header>
 
@@ -144,9 +228,16 @@ function App() {
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center max-w-md mx-auto">
             <Wrench className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-semibold text-slate-800 mb-1">No Tickets Found</h3>
-            <p className="text-sm text-slate-500">
-              There are currently no tickets in the database. Use your API or Swagger to add some!
+            <p className="text-sm text-slate-500 mb-4">
+              There are currently no tickets in the database. Click below to dispatch your first ticket!
             </p>
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg shadow-sm transition"
+            >
+              <Plus className="w-4 h-4" />
+              Create First Ticket
+            </button>
           </div>
         ) : (
           /* Tickets Grid */
@@ -179,7 +270,7 @@ function App() {
                       Est. Cost: <strong className="text-slate-900 text-sm font-semibold">{ticket.estimatedCost?.amount ?? 0} {ticket.estimatedCost?.currency ?? 'SEK'}</strong>
                     </span>
                     <span>
-                      {ticket.assignedTo ? `Assigned to: ${ticket.assignedTo}` : 'Unassigned'}
+                      {ticket.assignedTo ? `Assigned: ${ticket.assignedTo}` : 'Unassigned'}
                     </span>
                   </div>
 
@@ -219,6 +310,138 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* CREATE TICKET MODAL DIALOG */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">New Ticket</h2>
+                <p className="text-xs text-slate-500">Register a new customer issue or repair request.</p>
+              </div>
+              <button
+                onClick={closeCreateModal}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleCreateTicket} className="p-6 space-y-4">
+              {/* Title Field */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Office Wi-Fi keeps disconnecting"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Description Field */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Add any details or notes about the problem..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                />
+              </div>
+
+              {/* Customer Selector */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Customer
+                </label>
+                {customers.length > 0 ? (
+                  <select
+                    value={customerId}
+                    onChange={(e) => setCustomerId(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.fullName} ({c.companyName || 'Private'})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Enter customer name or ID..."
+                    value={customerId}
+                    onChange={(e) => setCustomerId(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                )}
+              </div>
+
+              {/* Priority & Cost Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Priority
+                  </label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(Number(e.target.value) as TicketPriority)}
+                    className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value={TicketPriority.Low}>Low</option>
+                    <option value={TicketPriority.Medium}>Medium</option>
+                    <option value={TicketPriority.High}>High</option>
+                    <option value={TicketPriority.Critical}>Critical</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Estimated Cost (SEK)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={estimatedCost}
+                    onChange={(e) => setEstimatedCost(Number(e.target.value))}
+                    className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={closeCreateModal}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg shadow-sm transition"
+                >
+                  {submitting ? 'Saving...' : 'Create Ticket'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
