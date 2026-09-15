@@ -42,7 +42,7 @@ public class TicketsController : ControllerBase
 
     // GET: api/tickets/customer/{customerId}
     [HttpGet("customer/{customerId}")]
-    public async Task<IActionResult> GetByCustomerId(string customerId)
+    public async Task<IActionResult> GetByCustomerId(Guid customerId)
     {
         var tickets = await _ticketService.GetByCustomerIdAsync(customerId);
         return Ok(tickets);

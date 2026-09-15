@@ -45,7 +45,7 @@ public class TicketService
         return results;
     }
 
-    public List<ServiceTicket> GetByCustomerId(string customerId)
+    public List<ServiceTicket> GetByCustomerId(Guid customerId)
     {
         var results = new List<ServiceTicket>();
 

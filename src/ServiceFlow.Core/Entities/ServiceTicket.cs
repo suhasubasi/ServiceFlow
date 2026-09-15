@@ -9,7 +9,7 @@ public class ServiceTicket
     public Guid? AssignedEmployeeId { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
-    public string CustomerId { get; set; }
+    public Guid CustomerId { get; set; }
     public string AssignedTo { get; set; } = "";
     public TicketPriority Priority { get; set; }
     public TicketStatus Status { get; set; } = TicketStatus.Open;
@@ -20,7 +20,7 @@ public class ServiceTicket
     {
         Title = string.Empty;
         Description = string.Empty;
-        CustomerId = string.Empty;
+        CustomerId = Guid.Empty;
         Priority = TicketPriority.Low;
         EstimatedCost = new Money(0, "SEK");
     }
@@ -28,7 +28,7 @@ public class ServiceTicket
     public ServiceTicket(
         string title,
         string description,
-        string customerId,
+        Guid customerId,
         TicketPriority priority,
         Money estimatedCost)
     {

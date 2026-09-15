@@ -38,7 +38,7 @@ public class TicketService : ITicketService
             .ToListAsync();
     }
 
-    public async Task<List<ServiceTicket>> GetByCustomerIdAsync(string customerId)
+    public async Task<List<ServiceTicket>> GetByCustomerIdAsync(Guid customerId)
     {
         return await _context.Tickets
             .Where(t => t.CustomerId == customerId)

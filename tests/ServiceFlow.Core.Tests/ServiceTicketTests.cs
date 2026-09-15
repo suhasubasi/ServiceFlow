@@ -10,16 +10,17 @@ public class ServiceTicketTests
     public void NewTicket_ShouldHaveCorrectValues()
     {
         // Arrange & Act
+        var customerId = Guid.NewGuid();
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer on 2nd floor is not working",
-            "customer-1",
+            customerId,
             TicketPriority.High,
             new Money(500m));
 
         // Assert
         Assert.Equal("Fix printer", ticket.Title);
-        Assert.Equal("customer-1", ticket.CustomerId);
+        Assert.Equal(customerId, ticket.CustomerId);
         Assert.Equal(TicketPriority.High, ticket.Priority);
         Assert.Equal(TicketStatus.Open, ticket.Status);
     }
@@ -31,7 +32,7 @@ public class ServiceTicketTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer on 2nd floor is not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m));
 
@@ -50,7 +51,7 @@ public class ServiceTicketTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer on 2nd floor is not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.Medium,
             new Money(300m));
 
@@ -68,7 +69,7 @@ public class ServiceTicketTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer on 2nd floor is not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.Low,
             new Money(200m));
 
@@ -86,7 +87,7 @@ public class ServiceTicketTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer on 2nd floor is not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m));
         ticket.Close();
@@ -106,7 +107,7 @@ public class ServiceTicketTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer on 2nd floor is not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m));
         ticket.Close();
@@ -125,7 +126,7 @@ public class ServiceTicketTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer on 2nd floor is not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m));
         var employee = new Employee("John Wick", "jongwick@example.com", "IT Support");

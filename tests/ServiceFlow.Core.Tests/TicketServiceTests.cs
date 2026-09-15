@@ -15,7 +15,7 @@ public class TicketServiceTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m));
 
@@ -34,14 +34,14 @@ public class TicketServiceTests
         var ticket1 = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m));
 
         var ticket2 = new ServiceTicket(
             "Install software",
             "Need Visual Studio",
-            "customer-2",
+            Guid.NewGuid(),
             TicketPriority.Low,
             new Money(200m));
 
@@ -61,7 +61,7 @@ public class TicketServiceTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m));
 
@@ -98,7 +98,7 @@ public class TicketServiceTests
         var ticket1 = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m)
         );
@@ -106,7 +106,7 @@ public class TicketServiceTests
         var ticket2 = new ServiceTicket(
             "Install software",
             "Need Visual Studio",
-            "customer-2",
+            Guid.NewGuid(),
             TicketPriority.Low,
             new Money(200m)
         );
@@ -114,7 +114,7 @@ public class TicketServiceTests
         var ticket3 = new ServiceTicket(
             "Fix network",
             "Wi-Fi is down",
-            "customer-3",
+            Guid.NewGuid(),
             TicketPriority.Critical,
             new Money(1000m)
         );
@@ -141,7 +141,7 @@ public class TicketServiceTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m)
         );
@@ -175,11 +175,13 @@ public class TicketServiceTests
     {
         // Arrange
         var service = new TicketService();
+        var customerId = Guid.NewGuid();
+        var otherCustomerId = Guid.NewGuid();
 
         var ticket1 = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            customerId,
             TicketPriority.High,
             new Money(500m)
         );
@@ -187,7 +189,7 @@ public class TicketServiceTests
         var ticket2 = new ServiceTicket(
             "Install software",
             "Need Visual Studio",
-            "customer-2",
+            otherCustomerId,
             TicketPriority.Low,
             new Money(200m)
         );
@@ -195,7 +197,7 @@ public class TicketServiceTests
         var ticket3 = new ServiceTicket(
             "Fix network",
             "Wi-Fi is down",
-            "customer-1",
+            customerId,
             TicketPriority.Critical,
             new Money(1000m)
         );
@@ -206,7 +208,7 @@ public class TicketServiceTests
         service.Add(ticket3);
 
         // Act
-        var results = service.GetByCustomerId("customer-1");
+        var results = service.GetByCustomerId(customerId);
 
         // Assert 
         Assert.Equal(2, results.Count);
@@ -221,7 +223,7 @@ public class TicketServiceTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m)
         );
@@ -229,7 +231,7 @@ public class TicketServiceTests
         service.Add(ticket);
 
         // Act 
-        var results = service.GetByCustomerId("customer-999");
+        var results = service.GetByCustomerId(Guid.NewGuid());
 
         // Assert
         Assert.Empty(results);
@@ -244,21 +246,21 @@ public class TicketServiceTests
         var ticket1 = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(500m)
         );
         var ticket2 = new ServiceTicket(
             "Install software",
             "Need Visual Studio",
-            "customer-2",
+            Guid.NewGuid(),
             TicketPriority.Low,
             new Money(200m)
         );
         var ticket3 = new ServiceTicket(
             "Replace monitor",
             "Monitor is broken",
-            "customer-3",
+            Guid.NewGuid(),
             TicketPriority.High,
             new Money(800m)
         );
@@ -278,7 +280,7 @@ public class TicketServiceTests
         var ticket = new ServiceTicket(
             "Fix printer",
             "Printer not working",
-            "customer-1",
+            Guid.NewGuid(),
             TicketPriority.Low,
             new Money(500m)
         );
@@ -297,9 +299,9 @@ public class TicketServiceTests
         var employee1 = new Employee("Paul Walker", "paul@serviceflow.se", "Field Service");
         var employee2 = new Employee("Michelle Rodriguez", "michelle@serviceflow.se", "IT Support");
 
-        var ticket1 = new ServiceTicket("Fix printer", "Desc", "cust-1", TicketPriority.Low, new Money(100m));
-        var ticket2 = new ServiceTicket("Fix server", "Desc", "cust-2", TicketPriority.High, new Money(500m));
-        var ticket3 = new ServiceTicket("Setup PC", "Desc", "cust-3", TicketPriority.Medium, new Money(250m));
+        var ticket1 = new ServiceTicket("Fix printer", "Desc", Guid.NewGuid(), TicketPriority.Low, new Money(100m));
+        var ticket2 = new ServiceTicket("Fix server", "Desc", Guid.NewGuid(), TicketPriority.High, new Money(500m));
+        var ticket3 = new ServiceTicket("Setup PC", "Desc", Guid.NewGuid(), TicketPriority.Medium, new Money(250m));
 
         ticket1.Assign(employee1);
         ticket2.Assign(employee2);
@@ -321,7 +323,7 @@ public class TicketServiceTests
     {
         // Arrange
         var service = new TicketService();
-        var ticket = new ServiceTicket("Fix printer", "Desc", "cust-1", TicketPriority.Low, new Money(100m));
+        var ticket = new ServiceTicket("Fix printer", "Desc", Guid.NewGuid(), TicketPriority.Low, new Money(100m));
         service.Add(ticket);
 
         // Act

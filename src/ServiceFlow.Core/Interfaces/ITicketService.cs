@@ -9,7 +9,7 @@ public interface ITicketService
     Task<List<ServiceTicket>> GetAllAsync();
     Task<ServiceTicket?> GetByIdAsync(Guid id);
     Task<List<ServiceTicket>> GetByStatusAsync(TicketStatus status);
-    Task<List<ServiceTicket>> GetByCustomerIdAsync(string customerId);
+    Task<List<ServiceTicket>> GetByCustomerIdAsync(Guid customerId);
     Task<List<ServiceTicket>> GetByPriorityAsync(TicketPriority priority);
     Task<List<ServiceTicket>> GetByEmployeeIdAsync(Guid employeeId);
     Task UpdateAsync();
