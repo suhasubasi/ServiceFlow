@@ -27,7 +27,21 @@ function App() {
   const [tickets, setTickets] = useState<ServiceTicket[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | TicketStatus>('all')
 
+  // Filtered tickets based on active status pill
+  const filteredTickets = statusFilter === 'all'
+    ? tickets
+    : tickets.filter((ticket) => ticket.status === statusFilter)
+
+  // Count badges for each filter pill
+  const counts = {
+    all: tickets.length,
+    open: tickets.filter((t) => t.status === TicketStatus.Open).length,
+    inProgress: tickets.filter((t) => t.status === TicketStatus.InProgress).length,
+    resolved: tickets.filter((t) => t.status === TicketStatus.Resolved).length,
+    closed: tickets.filter((t) => t.status === TicketStatus.Closed).length,
+  }
   // 2. Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -92,12 +106,17 @@ function App() {
       return
     }
 
+    if (!customerId) {
+      alert('Please select a customer.')
+      return
+    }
+
     try {
       setSubmitting(true)
       await createTicket({
         title: title.trim(),
         description: description.trim(),
-        customerId: customerId.trim() || 'General Customer',
+        customerId: customerId,
         priority: Number(priority) as TicketPriority,
         estimatedCostAmount: Number(estimatedCost) || 0
       })
@@ -240,74 +259,175 @@ function App() {
             </button>
           </div>
         ) : (
-          /* Tickets Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tickets.map((ticket) => (
-              <div
-                key={ticket.id}
-                className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between"
+          <>
+            {/* Status Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  statusFilter === 'all'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
               >
-                <div>
-                  {/* Status & Priority Row */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    {getStatusBadge(ticket.status)}
-                    {getPriorityBadge(ticket.priority)}
-                  </div>
+                All
+                <span className={`px-1.5 py-0.5 rounded-full text-[11px] ${
+                  statusFilter === 'all' ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {counts.all}
+                </span>
+              </button>
 
-                  {/* Title & Description */}
-                  <h3 className="font-semibold text-slate-900 text-lg mb-1 leading-snug">
-                    {ticket.title}
-                  </h3>
-                  <p className="text-slate-600 text-sm mb-4 line-clamp-3">
-                    {ticket.description}
-                  </p>
-                </div>
+              <button
+                onClick={() => setStatusFilter(TicketStatus.Open)}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  statusFilter === TicketStatus.Open
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                Open
+                <span className={`px-1.5 py-0.5 rounded-full text-[11px] ${
+                  statusFilter === TicketStatus.Open ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {counts.open}
+                </span>
+              </button>
 
-                {/* Card Footer: Cost, Assignee & Actions */}
-                <div className="pt-4 border-t border-slate-100 space-y-3">
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>
-                      Est. Cost: <strong className="text-slate-900 text-sm font-semibold">{ticket.estimatedCost?.amount ?? 0} {ticket.estimatedCost?.currency ?? 'SEK'}</strong>
-                    </span>
-                    <span>
-                      {ticket.assignedTo ? `Assigned: ${ticket.assignedTo}` : 'Unassigned'}
-                    </span>
-                  </div>
+              <button
+                onClick={() => setStatusFilter(TicketStatus.InProgress)}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  statusFilter === TicketStatus.InProgress
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                In Progress
+                <span className={`px-1.5 py-0.5 rounded-full text-[11px] ${
+                  statusFilter === TicketStatus.InProgress ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {counts.inProgress}
+                </span>
+              </button>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 pt-1">
-                    {ticket.status !== TicketStatus.Resolved && ticket.status !== TicketStatus.Closed && (
-                      <button
-                        onClick={() => handleResolve(ticket.id)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-3 rounded-lg transition"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        Resolve
-                      </button>
-                    )}
+              <button
+                onClick={() => setStatusFilter(TicketStatus.Resolved)}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  statusFilter === TicketStatus.Resolved
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Resolved
+                <span className={`px-1.5 py-0.5 rounded-full text-[11px] ${
+                  statusFilter === TicketStatus.Resolved ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {counts.resolved}
+                </span>
+              </button>
 
-                    {ticket.status !== TicketStatus.Closed && (
-                      <button
-                        onClick={() => handleClose(ticket.id)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold bg-slate-700 hover:bg-slate-800 text-white py-1.5 px-3 rounded-lg transition"
-                      >
-                        <Archive className="w-3.5 h-3.5" />
-                        Close
-                      </button>
-                    )}
+              <button
+                onClick={() => setStatusFilter(TicketStatus.Closed)}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  statusFilter === TicketStatus.Closed
+                    ? 'bg-slate-700 text-white shadow-sm'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                <Archive className="w-3.5 h-3.5" />
+                Closed
+                <span className={`px-1.5 py-0.5 rounded-full text-[11px] ${
+                  statusFilter === TicketStatus.Closed ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {counts.closed}
+                </span>
+              </button>
+            </div>
 
-                    <button
-                      onClick={() => handleDelete(ticket.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete Ticket"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+            {/* Tickets Grid or Filter Empty State */}
+            {filteredTickets.length === 0 ? (
+              <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-sm mx-auto">
+                <p className="text-sm text-slate-500 font-medium mb-3">No tickets match this filter.</p>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                >
+                  Show all tickets
+                </button>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTickets.map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Status & Priority Row */}
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        {getStatusBadge(ticket.status)}
+                        {getPriorityBadge(ticket.priority)}
+                      </div>
+
+                      {/* Title & Description */}
+                      <h3 className="font-semibold text-slate-900 text-lg mb-1 leading-snug">
+                        {ticket.title}
+                      </h3>
+                      <p className="text-slate-600 text-sm mb-4 line-clamp-3">
+                        {ticket.description}
+                      </p>
+                    </div>
+
+                    {/* Card Footer: Cost, Assignee & Actions */}
+                    <div className="pt-4 border-t border-slate-100 space-y-3">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>
+                          Est. Cost: <strong className="text-slate-900 text-sm font-semibold">{ticket.estimatedCost?.amount ?? 0} {ticket.estimatedCost?.currency ?? 'SEK'}</strong>
+                        </span>
+                        <span>
+                          {ticket.assignedTo ? `Assigned: ${ticket.assignedTo}` : 'Unassigned'}
+                        </span>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 pt-1">
+                        {ticket.status !== TicketStatus.Resolved && ticket.status !== TicketStatus.Closed && (
+                          <button
+                            onClick={() => handleResolve(ticket.id)}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-3 rounded-lg transition"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            Resolve
+                          </button>
+                        )}
+
+                        {ticket.status !== TicketStatus.Closed && (
+                          <button
+                            onClick={() => handleClose(ticket.id)}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold bg-slate-700 hover:bg-slate-800 text-white py-1.5 px-3 rounded-lg transition"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                            Close
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => handleDelete(ticket.id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          title="Delete Ticket"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
 
