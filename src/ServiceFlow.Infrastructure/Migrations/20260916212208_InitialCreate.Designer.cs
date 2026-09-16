@@ -13,7 +13,7 @@ using ServiceFlow.Infrastructure.Persistence;
 namespace ServiceFlow.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiceFlowDbContext))]
-    [Migration("20260910115830_InitialCreate")]
+    [Migration("20260916212208_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -105,9 +105,8 @@ namespace ServiceFlow.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .IsRequired()
