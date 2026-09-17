@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceFlow.Core.Interfaces;
 using ServiceFlow.Infrastructure.Services;
 using ServiceFlow.Infrastructure.Persistence;
+using ServiceFlow.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,7 +38,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 4. Configure the HTTP request pipeline (Middleware)
+// 1. Global Exception Handler (Must be at the very top of the HTTP pipeline!)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// 2. Configure the HTTP request pipeline (Middleware)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
