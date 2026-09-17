@@ -56,4 +56,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// 3. Automatically apply pending migrations and seed demo data on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ServiceFlowDbContext>();
+    dbContext.Database.Migrate();
+    DbInitializer.Seed(dbContext);
+}
+
 app.Run();

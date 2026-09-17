@@ -1,0 +1,48 @@
+services:
+  # 1. Database: PostgreSQL 17
+  db:
+    image: postgres:alpine
+    container_name: serviceflow-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: serviceflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d serviceflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Backend API: ASP.NET Core 10 Web API
+  api:
+    build:
+      context: .
+      dockerfile: src/ServiceFlow.Api/Dockerfile
+    container_name: serviceflow-api
+    ports:
+      - "5021:5021"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=serviceflow;Username=postgres;Password=postgres"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 3. Frontend Web: React 19 + TypeScript + Nginx
+  web:
+    build:
+      context: ./src/ServiceFlow.Web
+      dockerfile: Dockerfile
+    container_name: serviceflow-web
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+
