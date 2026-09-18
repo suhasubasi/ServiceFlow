@@ -37,10 +37,12 @@ public class ServiceTicketTests
             new Money(500m));
 
         // Act
-        ticket.Assign("Anna");
+        var employee = new Employee("Anna", "anna@example.com", "IT Support");
+        ticket.Assign(employee);
 
         // Assert
         Assert.Equal("Anna", ticket.AssignedTo);
+        Assert.Equal(employee.Id, ticket.AssignedEmployeeId);
         Assert.Equal(TicketStatus.InProgress, ticket.Status);
     }
 
@@ -93,7 +95,8 @@ public class ServiceTicketTests
         ticket.Close();
 
         // Act
-        ticket.Assign("Anna");
+        var employee = new Employee("Anna", "anna@example.com", "IT Support");
+        ticket.Assign(employee);
 
         // Assert
         Assert.Equal(TicketStatus.Closed, ticket.Status);

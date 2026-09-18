@@ -22,12 +22,13 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 
-// 5. Configure CORS for React frontend
+// 5. Configure CORS for React frontend (reads from environment variable in production)
+var allowedOrigins = builder.Configuration["CORS_ORIGINS"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins.Split(','))
               .AllowAnyHeader()
               .AllowAnyMethod();
     });

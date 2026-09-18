@@ -6,12 +6,6 @@ namespace ServiceFlow.Infrastructure.Persistence;
 
 public class ServiceFlowDbContext : DbContext
 {
-    // Ensures PosgreSQL accepts local DateTime without strict UTC conversion errors
-    static ServiceFlowDbContext()
-    {
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-    }
-
     public ServiceFlowDbContext(DbContextOptions<ServiceFlowDbContext>options) : base(options)
     {
     }

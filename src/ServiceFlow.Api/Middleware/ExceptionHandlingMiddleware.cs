@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +38,7 @@ public class ExceptionHandlingMiddleware
 
         var problemDetails = exception switch
         {
-            // Businnes rule or input argument validation errors -> 400
+            // Business rule or input argument validation errors -> 400
             InvalidOperationException or ArgumentException => new ProblemDetails
             {
                 Status = (int)HttpStatusCode.BadRequest,

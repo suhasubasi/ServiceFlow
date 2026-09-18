@@ -6,7 +6,7 @@ public class Employee
     public string FullName { get; set; }
     public string Email { get; set; }
     public string Department { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Employee(
         string fullName,

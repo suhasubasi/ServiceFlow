@@ -6,15 +6,15 @@ namespace ServiceFlow.Core.Entities;
 public class ServiceTicket
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid? AssignedEmployeeId { get; set; }
+    public Guid? AssignedEmployeeId { get; private set; }
     public string Title { get; set; }
     public string Description { get; set; }
     public Guid CustomerId { get; set; }
-    public string AssignedTo { get; set; } = "";
+    public string AssignedTo { get; private set; } = "";
     public TicketPriority Priority { get; set; }
-    public TicketStatus Status { get; set; } = TicketStatus.Open;
+    public TicketStatus Status { get; private set; } = TicketStatus.Open;
     public Money EstimatedCost { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     private ServiceTicket()
     {
@@ -39,16 +39,6 @@ public class ServiceTicket
         EstimatedCost = estimatedCost;
     }
 
-    public void Assign(string engineerName)
-    {
-        if (Status == TicketStatus.Closed)
-        {
-            return;
-        }
-
-        AssignedTo = engineerName;
-        Status = TicketStatus.InProgress;
-    }
 
     public void Assign(Employee employee)
     {

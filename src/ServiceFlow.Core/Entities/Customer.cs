@@ -7,7 +7,7 @@ public class Customer
     public string Email {get; set;}
     public string PhoneNumber {get; set;}
     public string CompanyName {get; set;}
-    public DateTime CreatedAt {get; set;} = DateTime.Now;
+    public DateTime CreatedAt {get; set;} = DateTime.UtcNow;
 
     public Customer(
         string fullName,

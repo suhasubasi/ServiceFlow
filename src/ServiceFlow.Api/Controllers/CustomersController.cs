@@ -28,13 +28,13 @@ public class CustomersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var customers = await _customerService.GetByIdAsync(id);
-        if(customers == null)
+        var customer = await _customerService.GetByIdAsync(id);
+        if(customer == null)
         {
             return NotFound($"Customer with ID {id} was not found.");
         }
 
-        return Ok(customers);
+        return Ok(customer);
     }
 
 

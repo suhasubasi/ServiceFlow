@@ -70,7 +70,7 @@ public class TicketsController : ControllerBase
             new Money(request.EstimatedCostAmount)
         );
 
-        // 2. Save into our in-memory service
+        // 2. Save ticket
         await _ticketService.AddAsync(ticket);
 
         // 3. Return 201 Created with link to GetById

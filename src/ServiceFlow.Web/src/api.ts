@@ -5,7 +5,7 @@ import type {
     CreateTicketRequest,
 } from './types'
 
-const API_BASE_URL = 'http://localhost:5021/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5021/api'
 
 // 1. Fetch all tickets from GET /api/tickets
 export async function getTickets(): Promise<ServiceTicket[]> {
