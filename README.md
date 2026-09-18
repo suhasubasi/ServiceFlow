@@ -4,6 +4,8 @@ A full-stack service desk application where companies can manage customer suppor
 
 The whole system runs with a single `docker compose up` command.
 
+![ServiceFlow Dashboard](docs/dashboard.png)
+
 ## What Does It Do?
 
 ServiceFlow is basically a ticket management system for field service / IT support companies. You can:
