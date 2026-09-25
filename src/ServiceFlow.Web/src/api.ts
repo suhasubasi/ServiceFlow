@@ -78,3 +78,16 @@ export async function deleteTicket(id: string): Promise<void> {
         throw new Error('Failed to delete ticket')
     }
 }
+
+// 8. Assign a ticket to an employee via PUT /api/tickets/{id}/assign
+export async function assignTicket(id: string, employeeId: string): Promise<ServiceTicket> {
+    const response = await fetch(`${API_BASE_URL}/tickets/${id}/assign`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({employeeId}),
+    })
+    if (!response.ok){
+        throw new Error('Failed to assign ticket')
+    }
+    return response.json()
+}

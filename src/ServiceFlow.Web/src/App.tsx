@@ -11,12 +11,14 @@ import {
   Plus,
   X
 } from 'lucide-react'
-import type { ServiceTicket, Customer } from './types'
+import type { ServiceTicket, Customer, Employee } from './types'
 import { TicketStatus, TicketPriority } from './types'
 import { 
   getTickets, 
-  getCustomers, 
-  createTicket, 
+  getCustomers,
+  getEmployees, 
+  createTicket,
+  assignTicket,
   resolveTicket, 
   closeTicket, 
   deleteTicket 
@@ -28,6 +30,12 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | TicketStatus>('all')
+
+  // Employees for the assign dropdown on each ticket card
+  const [employees, setEmployees] = useState<Employee[]>([])
+
+  // Which employee is selected in each card's dropdown (key = ticket id, value = employee id)
+  const [selectedEmployees, setSelectedEmployees] = useState<Record<string, string>>({})
 
   // Filtered tickets based on active status pill
   const filteredTickets = statusFilter === 'all'
@@ -42,6 +50,7 @@ function App() {
     resolved: tickets.filter((t) => t.status === TicketStatus.Resolved).length,
     closed: tickets.filter((t) => t.status === TicketStatus.Closed).length,
   }
+
   // 2. Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -54,17 +63,33 @@ function App() {
   const [priority, setPriority] = useState<TicketPriority>(TicketPriority.Medium)
   const [estimatedCost, setEstimatedCost] = useState<number>(500)
 
-  // 3. Fetch tickets from C# API on page load
+  // 3. Fetch tickets from C# API
   const loadTickets = async () => {
     try {
-      setLoading(true)
-      setError(null)
       const data = await getTickets()
       setTickets(data)
+      setError(null)
     } catch (err) {
+      console.error('Failed to load tickets', err)
       setError('Could not connect to API. Is ASP.NET Core running on port 5021?')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Refresh button: show the spinner, then reload tickets
+  const handleRefresh = () => {
+    setLoading(true)
+    loadTickets()
+  }
+
+  // Load employees for the assign dropdown on each ticket card
+  const loadEmployees = async () => {
+    try {
+      const data = await getEmployees()
+      setEmployees(data)
+    } catch (err) {
+      console.error('Could not load employees for assign dropdown', err)
     }
   }
 
@@ -93,8 +118,11 @@ function App() {
     setEstimatedCost(500)
   }
 
+  // Load tickets and employees once when the page opens
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- setState runs after await
     loadTickets()
+    loadEmployees()
   }, [])
 
   // 6. Action: Create Ticket (Form Submit)
@@ -124,6 +152,7 @@ function App() {
       closeCreateModal()
       await loadTickets() // Refresh ticket grid from database
     } catch (err) {
+      console.error('Failed to create ticket', err)
       alert('Failed to create ticket. Make sure the backend API is running.')
     } finally {
       setSubmitting(false)
@@ -136,6 +165,7 @@ function App() {
       await resolveTicket(id)
       await loadTickets() // Refresh list from database
     } catch (err) {
+      console.error('Failed to resolve ticket', err)
       alert('Failed to resolve ticket.')
     }
   }
@@ -146,6 +176,7 @@ function App() {
       await closeTicket(id)
       await loadTickets() // Refresh list from database
     } catch (err) {
+      console.error('Failed to close ticket', err)
       alert('Failed to close ticket.')
     }
   }
@@ -157,7 +188,19 @@ function App() {
       await deleteTicket(id)
       await loadTickets() // Refresh list from database
     } catch (err) {
+      console.error('Failed to delete ticket', err)
       alert('Failed to delete ticket.')
+    }
+  }
+
+  // 10. Action: Assign a technician to a ticket
+  const handleAssign = async (ticketId: string, employeeId: string) => {
+    try {
+      await assignTicket(ticketId, employeeId)
+      await loadTickets() // Refresh list from database
+    } catch (err) {
+      console.error('Failed to assign ticket', err)
+      alert('Failed to assign ticket.')
     }
   }
 
@@ -216,7 +259,7 @@ function App() {
               New Ticket
             </button>
             <button
-              onClick={loadTickets}
+              onClick={handleRefresh}
               className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition"
             >
               <RefreshCw className="w-4 h-4" />
@@ -391,6 +434,33 @@ function App() {
                           {ticket.assignedTo ? `Assigned: ${ticket.assignedTo}` : 'Unassigned'}
                         </span>
                       </div>
+
+                      {/* Assign Technician (only for open and in-progress tickets) */}
+                      {ticket.status !== TicketStatus.Resolved && ticket.status !== TicketStatus.Closed && (
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={selectedEmployees[ticket.id] ?? ''}
+                            onChange={(e) =>
+                              setSelectedEmployees({ ...selectedEmployees, [ticket.id]: e.target.value })
+                            }
+                            className="flex-1 text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select technician...</option>
+                            {employees.map((employee) => (
+                              <option key={employee.id} value={employee.id}>
+                                {employee.fullName}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => handleAssign(ticket.id, selectedEmployees[ticket.id])}
+                            disabled={!selectedEmployees[ticket.id]}
+                            className="text-xs font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-1.5 px-3 rounded-lg transition"
+                          >
+                            Assign
+                          </button>
+                        </div>
+                      )}
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2 pt-1">
