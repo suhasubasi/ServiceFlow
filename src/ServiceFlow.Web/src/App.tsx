@@ -17,7 +17,8 @@ import {
   getTickets, 
   getCustomers,
   getEmployees, 
-  createTicket, 
+  createTicket,
+  assignTicket,
   resolveTicket, 
   closeTicket, 
   deleteTicket 
@@ -116,7 +117,7 @@ function App() {
     setPriority(TicketPriority.Medium)
     setEstimatedCost(500)
   }
-  
+
   // Load tickets and employees once when the page opens
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect -- setState runs after await
@@ -189,6 +190,17 @@ function App() {
     } catch (err) {
       console.error('Failed to delete ticket', err)
       alert('Failed to delete ticket.')
+    }
+  }
+
+  // 10. Action: Assign a technician to a ticket
+  const handleAssign = async (ticketId: string, employeeId: string) => {
+    try {
+      await assignTicket(ticketId, employeeId)
+      await loadTickets() // Refresh list from database
+    } catch (err) {
+      console.error('Failed to assign ticket', err)
+      alert('Failed to assign ticket.')
     }
   }
 
@@ -423,22 +435,31 @@ function App() {
                         </span>
                       </div>
 
-                      {/* Assign Technician (hidden for closed tickets) */}
-                      {ticket.status !== TicketStatus.Closed && (
-                        <select
-                          value={selectedEmployees[ticket.id] ?? ''}
-                          onChange={(e) =>
-                            setSelectedEmployees({ ...selectedEmployees, [ticket.id]: e.target.value })
-                          }
-                          className="w-full text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select technician...</option>
-                          {employees.map((employee) => (
-                            <option key={employee.id} value={employee.id}>
-                              {employee.fullName}
-                            </option>
-                          ))}
-                        </select>
+                      {/* Assign Technician (only for open and in-progress tickets) */}
+                      {ticket.status !== TicketStatus.Resolved && ticket.status !== TicketStatus.Closed && (
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={selectedEmployees[ticket.id] ?? ''}
+                            onChange={(e) =>
+                              setSelectedEmployees({ ...selectedEmployees, [ticket.id]: e.target.value })
+                            }
+                            className="flex-1 text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select technician...</option>
+                            {employees.map((employee) => (
+                              <option key={employee.id} value={employee.id}>
+                                {employee.fullName}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => handleAssign(ticket.id, selectedEmployees[ticket.id])}
+                            disabled={!selectedEmployees[ticket.id]}
+                            className="text-xs font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-1.5 px-3 rounded-lg transition"
+                          >
+                            Assign
+                          </button>
+                        </div>
                       )}
 
                       {/* Action Buttons */}
