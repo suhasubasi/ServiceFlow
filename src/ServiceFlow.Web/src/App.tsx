@@ -9,6 +9,8 @@ import {
   Archive,
   RefreshCw,
   Plus,
+  UserPlus,
+  UserCog,
   X
 } from 'lucide-react'
 import type { ServiceTicket, Customer, Employee } from './types'
@@ -23,6 +25,9 @@ import {
   closeTicket, 
   deleteTicket 
 } from './api'
+
+import CreateCustomerModal from './components/CreateCustomerModal'
+import CreateEmployeeModal from './components/CreateEmployeeModal'
 
 function App() {
   // 1. Dashboard State
@@ -55,6 +60,8 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false)
+  const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false)
 
   // Form Fields
   const [title, setTitle] = useState('')
@@ -251,6 +258,20 @@ function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsCustomerModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-3.5 py-1.5 rounded-lg shadow-sm transition"
+            >
+              <UserPlus className="w-4 h-4" />
+              New Customer
+            </button>
+            <button
+              onClick={() => setIsEmployeeModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-3.5 py-1.5 rounded-lg shadow-sm transition"
+            >
+              <UserCog className="w-4 h-4" />
+              New Employee
+            </button>
             <button
               onClick={openCreateModal}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-lg shadow-sm transition"
@@ -631,6 +652,15 @@ function App() {
             </form>
           </div>
         </div>
+      )}
+      {isCustomerModalOpen && (
+        <CreateCustomerModal onClose={() => setIsCustomerModalOpen(false)} />
+      )}
+      {isEmployeeModalOpen && (
+        <CreateEmployeeModal
+          onClose={() => setIsEmployeeModalOpen(false)}
+          onCreated={loadEmployees}
+        />
       )}
     </div>
   )

@@ -62,3 +62,18 @@ export interface CreateTicketRequest {
   priority: TicketPriority
   estimatedCostAmount: number
 }
+
+// 7. DTO for creating a customer (matches C# CreateCustomerRequest)
+export interface CreateCustomerRequest {
+fullName: string
+email: string
+phoneNumber: string
+companyName: string
+}
+
+// 8. DTO for creating an employee (matches C# CreateEmployeeRequest)
+export interface CreateEmployeeRequest {
+  fullName: string
+  email: string
+  department: string
+}
