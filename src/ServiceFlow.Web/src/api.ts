@@ -3,9 +3,24 @@ import type {
     Customer,
     Employee,
     CreateTicketRequest,
+    CreateCustomerRequest,
+    CreateEmployeeRequest,
 } from './types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5021/api'
+
+// Reads the error messages from a 400 validation response
+async function getErrorMessage(response: Response, fallback: string): Promise<string> {
+    try {
+        const data = await response.json()
+        if (data.errors) {
+            return Object.values(data.errors).flat().join(' ')
+        }
+    } catch {
+
+    }
+    return fallback
+}
 
 // 1. Fetch all tickets from GET /api/tickets
 export async function getTickets(): Promise<ServiceTicket[]> {
@@ -88,6 +103,32 @@ export async function assignTicket(id: string, employeeId: string): Promise<Serv
     })
     if (!response.ok){
         throw new Error('Failed to assign ticket')
+    }
+    return response.json()
+}
+
+// 9. Create a new customer via POST /api/customers
+export async function createCustomer(customer: CreateCustomerRequest): Promise<Customer> {
+    const response = await fetch(`${API_BASE_URL}/customers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customer),
+    })
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response, 'Failed to create customer'))
+    }
+    return response.json()
+}
+
+// 10. Create a new employee via POST /api/employees
+export async function createEmployee(employee: CreateEmployeeRequest): Promise<Employee> {
+    const response = await fetch(`${API_BASE_URL}/employees`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify(employee),
+    })
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response, 'Failed to create employee'))
     }
     return response.json()
 }
