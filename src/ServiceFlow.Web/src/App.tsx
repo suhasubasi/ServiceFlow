@@ -254,37 +254,37 @@ function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900">ServiceFlow</h1>
-              <p className="text-xs text-slate-500">Service Desk & Dispatch Management</p>
+              <p className="hidden md:block text-xs text-slate-500">Service Desk & Dispatch Management</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={() => setIsCustomerModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-3.5 py-1.5 rounded-lg shadow-sm transition"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-2.5 md:px-3.5 py-1.5 rounded-lg shadow-sm transition"
             >
               <UserPlus className="w-4 h-4" />
-              New Customer
+              <span className="hidden md:inline">New Customer</span>
             </button>
             <button
               onClick={() => setIsEmployeeModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-3.5 py-1.5 rounded-lg shadow-sm transition"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-2.5 md:px-3.5 py-1.5 rounded-lg shadow-sm transition"
             >
               <UserCog className="w-4 h-4" />
-              New Employee
+              <span className="hidden md:inline">New Employee</span>
             </button>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-lg shadow-sm transition"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-2.5 md:px-3.5 py-1.5 rounded-lg shadow-sm transition"
             >
               <Plus className="w-4 h-4" />
-              New Ticket
+              <span className="hidden md:inline">New Ticket</span>
             </button>
             <button
               onClick={handleRefresh}
-              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition"
+              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 md:px-3 py-1.5 rounded-lg transition"
             >
               <RefreshCw className="w-4 h-4" />
-              Refresh
+              <span className="hidden md:inline">Refresh</span>
             </button>
           </div>
         </div>
@@ -525,7 +525,7 @@ function App() {
       {/* CREATE TICKET MODAL DIALOG */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <div>
