@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceFlow.Api.DTOs;
 using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -39,6 +40,7 @@ public class CustomersController : ControllerBase
 
 
     // POST: api/customers
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCustomerRequest request)
     {

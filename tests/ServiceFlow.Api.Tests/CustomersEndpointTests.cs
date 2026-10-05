@@ -15,6 +15,7 @@ public class CustomersEndpointTests : IClassFixture<ServiceFlowApiFactory>
     [Fact]
     public async Task CreateCustomer_WithValidData_ShouldReturn201()
     {
+        await AuthHelper.AuthenticateAsync(_client);
         var request = new
         {
             fullName = "Test Customer",
@@ -31,6 +32,7 @@ public class CustomersEndpointTests : IClassFixture<ServiceFlowApiFactory>
     [Fact]
     public async Task CreateCustomer_WithoutName_Returns400()
     {
+        await AuthHelper.AuthenticateAsync(_client);
         var request = new
         {
             fullName = "",
