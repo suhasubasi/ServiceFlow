@@ -9,6 +9,46 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5021/api'
 
+const TOKEN_KEY = 'serviceflow_token'
+
+export function getToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY)
+}
+
+export function setToken(token: string): void {
+    localStorage.setItem(TOKEN_KEY, token)
+}
+
+export function clearToken(): void {
+    localStorage.removeItem(TOKEN_KEY)
+}
+
+function authHeaders(extra: Record<string, string> = {}): HeadersInit {
+    const headers: Record<string, string> = { ...extra}
+    const token = getToken()
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+    }
+    return headers
+}
+
+export async function login(username: string, password: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password}),
+    })
+    if (!response.ok) {
+        throw new Error('Wrong credentials')
+    }
+    const data = await response.json()
+    setToken(data.token)
+}
+
+export function logout(): void {
+    clearToken()
+}
+
 // Reads the error messages from a 400 validation response
 async function getErrorMessage(response: Response, fallback: string): Promise<string> {
     try {
@@ -53,7 +93,7 @@ export async function getEmployees(): Promise<Employee[]> {
 export async function createTicket(ticket: CreateTicketRequest): Promise<ServiceTicket> {
     const response = await fetch(`${API_BASE_URL}/tickets`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(ticket),
         })
     if (!response.ok){
@@ -66,6 +106,7 @@ export async function createTicket(ticket: CreateTicketRequest): Promise<Service
 export async function resolveTicket(id: string): Promise<ServiceTicket> {
     const response = await fetch(`${API_BASE_URL}/tickets/${id}/resolve`, {
         method: 'PUT',
+        headers: authHeaders(),
     })
     if(!response.ok){
         throw new Error('Failed to resolve ticket')
@@ -77,6 +118,7 @@ export async function resolveTicket(id: string): Promise<ServiceTicket> {
 export async function closeTicket(id: string): Promise<ServiceTicket> {
     const response = await fetch(`${API_BASE_URL}/tickets/${id}/close`, {
         method: 'PUT',
+        headers: authHeaders(),
     })
     if (!response.ok) {
         throw new Error('Failed to close ticket')
@@ -88,6 +130,7 @@ export async function closeTicket(id: string): Promise<ServiceTicket> {
 export async function deleteTicket(id: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/tickets/${id}`, {
         method: 'DELETE',
+        headers: authHeaders(),
     })
     if (!response.ok) {
         throw new Error('Failed to delete ticket')
@@ -98,7 +141,7 @@ export async function deleteTicket(id: string): Promise<void> {
 export async function assignTicket(id: string, employeeId: string): Promise<ServiceTicket> {
     const response = await fetch(`${API_BASE_URL}/tickets/${id}/assign`, {
         method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders({'Content-Type': 'application/json'}),
         body: JSON.stringify({employeeId}),
     })
     if (!response.ok){
@@ -111,7 +154,7 @@ export async function assignTicket(id: string, employeeId: string): Promise<Serv
 export async function createCustomer(customer: CreateCustomerRequest): Promise<Customer> {
     const response = await fetch(`${API_BASE_URL}/customers`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(customer),
     })
     if (!response.ok) {
@@ -124,7 +167,7 @@ export async function createCustomer(customer: CreateCustomerRequest): Promise<C
 export async function createEmployee(employee: CreateEmployeeRequest): Promise<Employee> {
     const response = await fetch(`${API_BASE_URL}/employees`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json'},
+        headers: authHeaders({ 'Content-Type': 'application/json'}),
         body: JSON.stringify(employee),
     })
     if (!response.ok) {

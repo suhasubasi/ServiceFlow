@@ -3,6 +3,7 @@ using ServiceFlow.Api.DTOs;
 using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Interfaces;
 using ServiceFlow.Core.ValueObjects;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -58,6 +59,7 @@ public class TicketsController : ControllerBase
 
 
     // POST: api/tickets
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
     {
@@ -79,6 +81,7 @@ public class TicketsController : ControllerBase
 
 
     // PUT: api/tickets/{id}/assign
+    [Authorize]
     [HttpPut("{id}/assign")]
     public async Task<IActionResult> Assign(Guid id, [FromBody] AssignTicketRequest request)
     {
@@ -101,6 +104,7 @@ public class TicketsController : ControllerBase
     }
 
     // PUT: api/tickets/{id}/resolve
+    [Authorize]
     [HttpPut("{id}/resolve")]
     public async Task<IActionResult> Resolve(Guid id)
     {
@@ -116,6 +120,7 @@ public class TicketsController : ControllerBase
     }
 
     // PUT: api/tickets/{id}/close
+    [Authorize]
     [HttpPut("{id}/close")]
     public async Task<IActionResult> Close(Guid id)
     {
@@ -132,6 +137,7 @@ public class TicketsController : ControllerBase
 
 
     // DELETE: api/tickets/{id}
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

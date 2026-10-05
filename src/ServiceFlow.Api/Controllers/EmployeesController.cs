@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceFlow.Api.DTOs;
 using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -38,6 +39,7 @@ public class EmployeesController : ControllerBase
     }
 
     // POST: api/employees
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateEmployeeRequest request)
     {

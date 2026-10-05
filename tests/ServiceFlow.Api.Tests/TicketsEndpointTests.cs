@@ -36,6 +36,8 @@ public class TicketsEndpointTests : IClassFixture<ServiceFlowApiFactory>
     [Fact]
     public async Task CreateTicket_WithoutTitle_ShouldReturn400()
     {
+        await AuthHelper.AuthenticateAsync(_client);
+
         var request = new
         {
             title = "",
@@ -53,6 +55,8 @@ public class TicketsEndpointTests : IClassFixture<ServiceFlowApiFactory>
     [Fact]
     public async Task CreateTicket_WithValidData_ShouldReturn201()
     {
+        await AuthHelper.AuthenticateAsync(_client);
+
         // Arrange: create a real customer first
         var customerRequest = new
         {
