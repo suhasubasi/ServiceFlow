@@ -255,7 +255,12 @@ function App() {
         {/* Top Navbar */}
         <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
           <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <button
+                type="button"
+                onClick={handleRefresh}
+                className="flex items-center gap-3 text-left"
+                title="Refresh"
+            >
               <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm">
                 <Wrench className="w-6 h-6" />
               </div>
@@ -263,7 +268,7 @@ function App() {
                 <h1 className="text-xl font-bold tracking-tight text-slate-900">ServiceFlow</h1>
                 <p className="hidden md:block text-xs text-slate-500">Service Desk & Dispatch Management</p>
               </div>
-            </div>
+            </button>
             <div className="flex items-center gap-2 md:gap-3">
               <button
                   onClick={() => setIsCustomerModalOpen(true)}
@@ -312,10 +317,10 @@ function App() {
               )}
               <button
                   onClick={handleRefresh}
-                  className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 md:px-3 py-1.5 rounded-lg transition"
+                  className="hidden md:inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span className="hidden md:inline">Refresh</span>
+                <span>Refresh</span>
               </button>
             </div>
           </div>
