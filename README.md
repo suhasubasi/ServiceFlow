@@ -169,7 +169,7 @@ dotnet test
 There are two test projects:
 
 - `tests/ServiceFlow.Core.Tests` – xUnit unit tests for the domain logic (ticket state transitions, preventing changes to closed tickets, Money value object arithmetic).
-- `tests/ServiceFlow.Api.Tests` – integration tests that call the real API endpoints (customers and tickets) against a PostgreSQL database.
+- `tests/ServiceFlow.Api.Tests` – integration tests that call the real API endpoints (auth, customers, employees, tickets) against a PostgreSQL database.
 
 The API tests need PostgreSQL running on `localhost:5432`. The GitHub Actions workflow starts a Postgres container for this automatically.
 
@@ -182,5 +182,3 @@ A GitHub Actions workflow (`.github/workflows`) runs on every push and pull requ
 This project focuses primarily on clean backend architecture, domain modeling, and database integration. Areas planned for future iterations include:
 
 - **Roles**: Right now any logged-in user can do all write actions. The plan is to add roles so technicians only see assigned tickets and administrators have full dispatch control.
-- **More tests**: Adding tests for employees and for login.
-- **Component Breakdown**: Splitting `App.tsx` in the frontend into dedicated smaller components (`TicketCard`, `FilterBar`, `CreateTicketModal`).
