@@ -66,18 +66,13 @@ public static class DbInitializer
         context.SaveChanges();
     }
 
-    public static void SeedAdminUser(ServiceFlowDbContext context, string username, string password)
+    public static void SeedUser(ServiceFlowDbContext context, string username, string password, string role)
     {
-        // Only create the admin if there are no users yet
-        if (context.Users.Any())
-        {
-            return;
-        }
+        if (context.Users.Any(u => u.Username == username)) return;
 
-        var admin = new User(username, Roles.Admin);
-        admin.PasswordHash = new PasswordHasher<User>().HashPassword(admin, password);
-
-        context.Users.Add(admin);
+        var user = new User(username, role);
+        user.PasswordHash = new PasswordHasher<User>().HashPassword(user, password);
+        context.Users.Add(user);
         context.SaveChanges();
     }
 }
