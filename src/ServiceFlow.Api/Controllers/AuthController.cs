@@ -40,7 +40,8 @@ public class AuthController : ControllerBase
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username)
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, user.Role)
         };
         
         // 4. Build the token
@@ -51,8 +52,12 @@ public class AuthController : ControllerBase
             expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: credentials);
         
-        // 5. Return the token as a string 
-        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+        // 5. Return the token as a string, plus user's role
+        return Ok(new
+        {
+            token = new JwtSecurityTokenHandler().WriteToken(token),
+            role = user.Role
+        });
     }
 
 }

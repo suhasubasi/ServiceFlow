@@ -4,6 +4,7 @@ using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Interfaces;
 using ServiceFlow.Core.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
+using ServiceFlow.Core.Constants;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -137,7 +138,7 @@ public class TicketsController : ControllerBase
 
 
     // DELETE: api/tickets/{id}
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
