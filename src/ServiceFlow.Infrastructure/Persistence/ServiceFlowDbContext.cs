@@ -45,6 +45,7 @@ public class ServiceFlowDbContext : DbContext
             entity.Property(u => u.Username).IsRequired().HasMaxLength(50);
             entity.HasIndex(u => u.Username).IsUnique();
             entity.Property(u => u.PasswordHash).IsRequired();
+            entity.Property(u => u.Role).IsRequired().HasMaxLength(20);
         });
         
         // Configure ServiceTicket table

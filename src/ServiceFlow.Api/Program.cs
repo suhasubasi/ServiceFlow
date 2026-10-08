@@ -6,6 +6,7 @@ using ServiceFlow.Api.Middleware;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using ServiceFlow.Core.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,10 +86,8 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ServiceFlowDbContext>();
     dbContext.Database.Migrate();
     DbInitializer.Seed(dbContext);
-    DbInitializer.SeedAdminUser(
-        dbContext,
-        app.Configuration["Auth:DemoUsername"]!,
-        app.Configuration["Auth:DemoPassword"]!);
+    DbInitializer.SeedUser(dbContext, app.Configuration["Auth:DemoUsername"]!, app.Configuration["Auth:DemoPassword"]!, Roles.Admin);
+    DbInitializer.SeedUser(dbContext, app.Configuration["Auth:TechUsername"]!, app.Configuration["Auth:TechPassword"]!, Roles.Technician);
 }
 
 app.Run();

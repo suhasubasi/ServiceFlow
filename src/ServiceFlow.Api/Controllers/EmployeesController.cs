@@ -3,6 +3,7 @@ using ServiceFlow.Api.DTOs;
 using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using ServiceFlow.Core.Constants;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -39,7 +40,7 @@ public class EmployeesController : ControllerBase
     }
 
     // POST: api/employees
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateEmployeeRequest request)
     {
