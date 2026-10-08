@@ -1,6 +1,7 @@
 using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Enums;
 using ServiceFlow.Core.ValueObjects;
+using Microsoft.AspNetCore.Identity;
 
 namespace ServiceFlow.Infrastructure.Persistence;
 
@@ -61,6 +62,21 @@ public static class DbInitializer
         ticket3.Resolve(); // Status: Resolved
 
         context.Tickets.AddRange(ticket1, ticket2, ticket3);
+        context.SaveChanges();
+    }
+
+    public static void SeedAdminUser(ServiceFlowDbContext context, string username, string password)
+    {
+        // Only create the admin if there are no users yet
+        if (context.Users.Any())
+        {
+            return;
+        }
+
+        var admin = new User(username);
+        admin.PasswordHash = new PasswordHasher<User>().HashPassword(admin, password);
+
+        context.Users.Add(admin);
         context.SaveChanges();
     }
 }

@@ -13,6 +13,7 @@ public class ServiceFlowDbContext : DbContext
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<ServiceTicket> Tickets => Set<ServiceTicket>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +36,15 @@ public class ServiceFlowDbContext : DbContext
             entity.Property(e => e.FullName).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Department).HasMaxLength(100);
+        });
+
+        // Configure User table
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.Username).IsRequired().HasMaxLength(50);
+            entity.HasIndex(u => u.Username).IsUnique();
+            entity.Property(u => u.PasswordHash).IsRequired();
         });
         
         // Configure ServiceTicket table
