@@ -24,6 +24,7 @@ builder.Services.AddDbContext<ServiceFlowDbContext>(options =>
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // 5. Configure CORS for React frontend (reads from environment variable in production)
 var allowedOrigins = builder.Configuration["CORS_ORIGINS"] ?? "http://localhost:5173";
@@ -84,6 +85,10 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ServiceFlowDbContext>();
     dbContext.Database.Migrate();
     DbInitializer.Seed(dbContext);
+    DbInitializer.SeedAdminUser(
+        dbContext,
+        app.Configuration["Auth:DemoUsername"]!,
+        app.Configuration["Auth:DemoPassword"]!);
 }
 
 app.Run();

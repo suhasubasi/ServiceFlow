@@ -4,6 +4,7 @@ using System.Text;
 using ServiceFlow.Api.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using ServiceFlow.Core.Interfaces;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -12,19 +13,21 @@ namespace ServiceFlow.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _config;
+    private readonly IUserService _userService;
 
-    public AuthController(IConfiguration config)
+    public AuthController(IConfiguration config, IUserService userService)
     {
         _config = config;
+        _userService = userService;
     }
     
     // POST: api/auth/login
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        // 1. Check username and password against the demo user in config
-        if (request.Username != _config["Auth:DemoUsername"] ||
-            request.Password != _config["Auth:DemoPassword"])
+        // 1. Check username and password against the users table
+        var user = await _userService.ValidateCredentialsAsync(request.Username, request.Password);
+        if (user is null)
         {
             return Unauthorized("Wrong username or password.");
         }
@@ -36,7 +39,8 @@ public class AuthController : ControllerBase
         // 3. Claims = facts about the user that go inside the token
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, request.Username)
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Username)
         };
         
         // 4. Build the token
