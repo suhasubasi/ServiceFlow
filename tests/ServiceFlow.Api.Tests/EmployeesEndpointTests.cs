@@ -100,5 +100,22 @@ public class EmployeesEndpointTests : IClassFixture<ServiceFlowApiFactory>
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+    
+    [Fact]
+    public async Task CreateEmployee_AsTechnician_ShouldReturn403Forbidden()
+    {
+        await AuthHelper.AuthenticateAsync(_client, "tech", "tech123");
+
+        var request = new
+        {
+            fullName = "Erik Svensson",
+            email = $"erik-{Guid.NewGuid()}@example.com",
+            department = "IT Support"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/employees", request);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }
 

@@ -83,4 +83,24 @@ public class TicketsEndpointTests : IClassFixture<ServiceFlowApiFactory>
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
+    
+    [Fact]
+    public async Task DeleteTicket_AsTechnician_ShouldReturn403Forbidden()
+    {
+        await AuthHelper.AuthenticateAsync(_client, "tech", "tech123");
+
+        var response = await _client.DeleteAsync($"/api/tickets/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteTicket_AsAdmin_WithUnknownId_ShouldReturn404()
+    {
+        await AuthHelper.AuthenticateAsync(_client);
+
+        var response = await _client.DeleteAsync($"/api/tickets/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
