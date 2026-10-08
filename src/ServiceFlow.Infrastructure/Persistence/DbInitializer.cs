@@ -2,6 +2,7 @@ using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Enums;
 using ServiceFlow.Core.ValueObjects;
 using Microsoft.AspNetCore.Identity;
+using ServiceFlow.Core.Constants;
 
 namespace ServiceFlow.Infrastructure.Persistence;
 
@@ -73,7 +74,7 @@ public static class DbInitializer
             return;
         }
 
-        var admin = new User(username);
+        var admin = new User(username, Roles.Admin);
         admin.PasswordHash = new PasswordHasher<User>().HashPassword(admin, password);
 
         context.Users.Add(admin);
