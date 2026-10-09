@@ -23,6 +23,7 @@ import {
   getToken,
   logout,
   getRole,
+  setUnauthorizedHandler,
 } from './api'
 
 import CreateCustomerModal from './components/CreateCustomerModal'
@@ -116,6 +117,15 @@ function App() {
     loadEmployees()
   }, [])
 
+  // When the token expires: show logged out and open the login window
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setIsLoggedIn(false)
+      setRole(null)
+      setIsLoginModalOpen(true)
+    })
+  }, [])
+
   // 5. Action: Create Ticket (called by the modal on submit)
   const handleCreateTicket = async (ticket: CreateTicketRequest) => {
     try {
@@ -205,13 +215,14 @@ function App() {
                 <span className="hidden md:inline">New Customer</span>
               </button>
               {isAdmin && (
-                <button
-                  onClick={() => setIsEmployeeModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-2.5 md:px-3.5 py-1.5 rounded-lg shadow-sm transition"
-              >
-                <UserCog className="w-4 h-4" />
-                <span className="hidden md:inline">New Employee</span>
-              </button>)}
+                  <button
+                      onClick={() => setIsEmployeeModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 px-2.5 md:px-3.5 py-1.5 rounded-lg shadow-sm transition"
+                  >
+                    <UserCog className="w-4 h-4" />
+                    <span className="hidden md:inline">New Employee</span>
+                  </button>
+              )}
               <button
                   onClick={openCreateModal}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-2.5 md:px-3.5 py-1.5 rounded-lg shadow-sm transition"
@@ -347,10 +358,10 @@ function App() {
         {isLoginModalOpen && (
             <LoginModal
                 onClose={() => setIsLoginModalOpen(false)}
-                onLoggedIn={() =>{
+                onLoggedIn={() => {
                   setIsLoggedIn(true)
-                  setRole(getRole())}
-                }
+                  setRole(getRole())
+                }}
             />
         )}
       </div>
