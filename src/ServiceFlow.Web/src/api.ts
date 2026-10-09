@@ -10,6 +10,7 @@ import type {
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5021/api'
 
 const TOKEN_KEY = 'serviceflow_token'
+const ROLE_KEY = 'serviceflow_role'
 
 export function getToken(): string | null {
     return localStorage.getItem(TOKEN_KEY)
@@ -21,6 +22,10 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
     localStorage.removeItem(TOKEN_KEY)
+}
+
+export function getRole(): string | null {
+    return localStorage.getItem(ROLE_KEY)
 }
 
 function authHeaders(extra: Record<string, string> = {}): HeadersInit {
@@ -43,10 +48,12 @@ export async function login(username: string, password: string): Promise<void> {
     }
     const data = await response.json()
     setToken(data.token)
+    localStorage.setItem(ROLE_KEY, data.role)
 }
 
 export function logout(): void {
     clearToken()
+    localStorage.removeItem(ROLE_KEY)
 }
 
 // Reads the error messages from a 400 validation response
