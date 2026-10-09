@@ -6,6 +6,7 @@ import { TicketStatus, TicketPriority } from '../types'
 interface TicketCardProps {
   ticket: ServiceTicket
   employees: Employee[]
+  canDelete: boolean // NEW: only admins can delete
   onAssign: (ticketId: string, employeeId: string) => void
   onResolve: (ticketId: string) => void
   onClose: (ticketId: string) => void
@@ -44,7 +45,8 @@ function getPriorityBadge(priority: number) {
   }
 }
 
-function TicketCard({ ticket, employees, onAssign, onResolve, onClose, onDelete }: TicketCardProps) {
+// NEW: canDelete added to the destructured props
+function TicketCard({ ticket, employees, canDelete, onAssign, onResolve, onClose, onDelete }: TicketCardProps) {
   // Which employee is selected in this card's dropdown
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
 
@@ -126,13 +128,16 @@ function TicketCard({ ticket, employees, onAssign, onResolve, onClose, onDelete 
             </button>
           )}
 
-          <button
-            onClick={() => onDelete(ticket.id)}
-            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-            title="Delete Ticket"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {/* NEW: Delete is only shown to admins */}
+          {canDelete && (
+            <button
+              onClick={() => onDelete(ticket.id)}
+              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+              title="Delete Ticket"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -140,4 +145,3 @@ function TicketCard({ ticket, employees, onAssign, onResolve, onClose, onDelete 
 }
 
 export default TicketCard
-
