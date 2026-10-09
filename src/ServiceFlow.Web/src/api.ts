@@ -29,7 +29,7 @@ export function getRole(): string | null {
 }
 
 function authHeaders(extra: Record<string, string> = {}): HeadersInit {
-    const headers: Record<string, string> = { ...extra}
+    const headers: Record<string, string> = { ...extra }
     const token = getToken()
     if (token) {
         headers['Authorization'] = `Bearer ${token}`
@@ -40,8 +40,8 @@ function authHeaders(extra: Record<string, string> = {}): HeadersInit {
 export async function login(username: string, password: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username, password}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
     })
     if (!response.ok) {
         throw new Error('Wrong credentials')
@@ -56,6 +56,22 @@ export function logout(): void {
     localStorage.removeItem(ROLE_KEY)
 }
 
+// App registers what should happen when the session has expired
+let onUnauthorized: () => void = () => {}
+
+export function setUnauthorizedHandler(handler: () => void): void {
+    onUnauthorized = handler
+}
+
+// Call this right after fetch in every protected request
+function checkAuth(response: Response): void {
+    if (response.status === 401) {
+        logout()
+        onUnauthorized()
+        throw new Error('Your session has expired. Please log in again.')
+    }
+}
+
 // Reads the error messages from a 400 validation response
 async function getErrorMessage(response: Response, fallback: string): Promise<string> {
     try {
@@ -64,7 +80,7 @@ async function getErrorMessage(response: Response, fallback: string): Promise<st
             return Object.values(data.errors).flat().join(' ')
         }
     } catch {
-
+        // Body was not JSON, use the fallback
     }
     return fallback
 }
@@ -72,7 +88,7 @@ async function getErrorMessage(response: Response, fallback: string): Promise<st
 // 1. Fetch all tickets from GET /api/tickets
 export async function getTickets(): Promise<ServiceTicket[]> {
     const response = await fetch(`${API_BASE_URL}/tickets`)
-    if(!response.ok){
+    if (!response.ok) {
         throw new Error('Failed to fetch tickets from API')
     }
     return response.json()
@@ -81,29 +97,30 @@ export async function getTickets(): Promise<ServiceTicket[]> {
 // 2. Fetch all customers from GET /api/customers
 export async function getCustomers(): Promise<Customer[]> {
     const response = await fetch(`${API_BASE_URL}/customers`)
-    if (!response.ok){
+    if (!response.ok) {
         throw new Error('Failed to fetch customers')
     }
-    return response.json();
+    return response.json()
 }
 
 // 3. Fetch all employees from GET /api/employees
 export async function getEmployees(): Promise<Employee[]> {
     const response = await fetch(`${API_BASE_URL}/employees`)
-    if (!response.ok){
+    if (!response.ok) {
         throw new Error('Failed to fetch employees')
     }
-    return response.json();
+    return response.json()
 }
 
 // 4. Create a new ticket via POST /api/tickets
 export async function createTicket(ticket: CreateTicketRequest): Promise<ServiceTicket> {
     const response = await fetch(`${API_BASE_URL}/tickets`, {
-        method: 'POST', 
+        method: 'POST',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(ticket),
-        })
-    if (!response.ok){
+    })
+    checkAuth(response)
+    if (!response.ok) {
         throw new Error('Failed to create ticket')
     }
     return response.json()
@@ -115,7 +132,8 @@ export async function resolveTicket(id: string): Promise<ServiceTicket> {
         method: 'PUT',
         headers: authHeaders(),
     })
-    if(!response.ok){
+    checkAuth(response)
+    if (!response.ok) {
         throw new Error('Failed to resolve ticket')
     }
     return response.json()
@@ -127,6 +145,7 @@ export async function closeTicket(id: string): Promise<ServiceTicket> {
         method: 'PUT',
         headers: authHeaders(),
     })
+    checkAuth(response)
     if (!response.ok) {
         throw new Error('Failed to close ticket')
     }
@@ -139,6 +158,7 @@ export async function deleteTicket(id: string): Promise<void> {
         method: 'DELETE',
         headers: authHeaders(),
     })
+    checkAuth(response)
     if (!response.ok) {
         throw new Error('Failed to delete ticket')
     }
@@ -148,10 +168,11 @@ export async function deleteTicket(id: string): Promise<void> {
 export async function assignTicket(id: string, employeeId: string): Promise<ServiceTicket> {
     const response = await fetch(`${API_BASE_URL}/tickets/${id}/assign`, {
         method: 'PUT',
-        headers: authHeaders({'Content-Type': 'application/json'}),
-        body: JSON.stringify({employeeId}),
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ employeeId }),
     })
-    if (!response.ok){
+    checkAuth(response)
+    if (!response.ok) {
         throw new Error('Failed to assign ticket')
     }
     return response.json()
@@ -164,6 +185,7 @@ export async function createCustomer(customer: CreateCustomerRequest): Promise<C
         headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(customer),
     })
+    checkAuth(response)
     if (!response.ok) {
         throw new Error(await getErrorMessage(response, 'Failed to create customer'))
     }
@@ -174,9 +196,10 @@ export async function createCustomer(customer: CreateCustomerRequest): Promise<C
 export async function createEmployee(employee: CreateEmployeeRequest): Promise<Employee> {
     const response = await fetch(`${API_BASE_URL}/employees`, {
         method: 'POST',
-        headers: authHeaders({ 'Content-Type': 'application/json'}),
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(employee),
     })
+    checkAuth(response)
     if (!response.ok) {
         throw new Error(await getErrorMessage(response, 'Failed to create employee'))
     }
