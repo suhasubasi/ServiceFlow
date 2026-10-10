@@ -3,6 +3,7 @@ using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Enums;
 using ServiceFlow.Core.Interfaces;
 using ServiceFlow.Infrastructure.Persistence;
+using ServiceFlow.Core.Common;
 
 namespace ServiceFlow.Infrastructure.Services;
 
@@ -75,5 +76,39 @@ public class TicketService : ITicketService
         _context.Tickets.Remove(ticket);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<PagedResult<ServiceTicket>> SearchAsync(string? query, TicketStatus? status, int page, int pageSize)
+    {
+        var tickets = _context.Tickets.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var pattern = $"%{query.Trim()}%";
+            tickets = tickets.Where(t => 
+                EF.Functions.ILike(t.Title, pattern) ||
+                EF.Functions.ILike(t.Description, pattern)
+            );
+        }
+
+        if (status is not null)
+        {
+            tickets = tickets.Where(t => t.Status == status);
+        }
+
+        var totalCount = await tickets.CountAsync();
+
+        var items = await tickets
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<ServiceTicket>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            Pagesize = pageSize
+        };
     }
 }

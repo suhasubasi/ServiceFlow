@@ -1,3 +1,4 @@
+using ServiceFlow.Core.Common;
 using ServiceFlow.Core.Entities;
 using ServiceFlow.Core.Enums;
 
@@ -14,4 +15,5 @@ public interface ITicketService
     Task<List<ServiceTicket>> GetByEmployeeIdAsync(Guid employeeId);
     Task UpdateAsync();
     Task<bool> RemoveAsync(Guid id);
+    Task<PagedResult<ServiceTicket>> SearchAsync(string? query, TicketStatus? status, int page, int pageSize);
 }

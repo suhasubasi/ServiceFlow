@@ -5,6 +5,7 @@ using ServiceFlow.Core.Interfaces;
 using ServiceFlow.Core.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using ServiceFlow.Core.Constants;
+using ServiceFlow.Core.Enums;
 
 namespace ServiceFlow.Api.Controllers;
 
@@ -28,6 +29,26 @@ public class TicketsController : ControllerBase
         var tickets = await _ticketService.GetAllAsync();
         return Ok(tickets);
     }
+
+    // GET: api/tickets/search?query=printer&status=0&page=1&pageSize=6
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string? query,
+        [FromQuery] TicketStatus? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 6
+    )
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
+        var result = await _ticketService.SearchAsync(query, status, page, pageSize);
+        return Ok(result);
+    }
+
+
+
+
 
     // GET: api/tickets/{id}
     [HttpGet("{id}")]
