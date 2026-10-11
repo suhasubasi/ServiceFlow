@@ -77,3 +77,11 @@ export interface CreateEmployeeRequest {
   email: string
   department: string
 }
+
+export interface PagedResult<T> {
+  items: T[]
+  totalCount: number
+  page: number
+  pageSize: number
+  totalPages: number
+}

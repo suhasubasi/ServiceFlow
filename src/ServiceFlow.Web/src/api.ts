@@ -5,6 +5,8 @@ import type {
     CreateTicketRequest,
     CreateCustomerRequest,
     CreateEmployeeRequest,
+    PagedResult,
+    TicketStatus
 } from './types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5021/api'
@@ -90,6 +92,26 @@ export async function getTickets(): Promise<ServiceTicket[]> {
     const response = await fetch(`${API_BASE_URL}/tickets`)
     if (!response.ok) {
         throw new Error('Failed to fetch tickets from API')
+    }
+    return response.json()
+}
+
+export async function searchTickets(
+    query: string,
+    status: TicketStatus | null,
+    page: number,
+    pageSize: number,
+): Promise<PagedResult<ServiceTicket>> {
+    const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+    })
+    if (query.trim()) params.set('query', query.trim())
+    if (status !== null) params.set('status', String(status))
+
+    const response = await fetch(`${API_BASE_URL}/tickets/search?${params}`)
+    if (!response.ok) {
+        throw new Error('Failed to search tickets')
     }
     return response.json()
 }

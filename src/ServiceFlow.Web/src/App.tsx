@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Wrench,
   AlertCircle,
@@ -8,8 +8,9 @@ import {
   UserCog,
   LogIn,
   LogOut,
+  Search,
 } from 'lucide-react'
-import type { ServiceTicket, Customer, Employee, CreateTicketRequest } from './types'
+import type { ServiceTicket, Customer, Employee, CreateTicketRequest, PagedResult } from './types'
 import { TicketStatus } from './types'
 import {
   getTickets,
@@ -24,6 +25,7 @@ import {
   logout,
   getRole,
   setUnauthorizedHandler,
+  searchTickets,
 } from './api'
 
 import CreateCustomerModal from './components/CreateCustomerModal'
@@ -33,6 +35,9 @@ import FilterBar from './components/FilterBar'
 import type { StatusFilter } from './components/FilterBar'
 import LoginModal from './components/LoginModal'
 import TicketCard from './components/TicketCard'
+import Pagination from './components/Pagination'
+
+const PAGE_SIZE = 6
 
 function App() {
   // 1. Dashboard State
@@ -44,10 +49,10 @@ function App() {
   // Employees for the assign dropdown on each ticket card
   const [employees, setEmployees] = useState<Employee[]>([])
 
-  // Filtered tickets based on active status pill
-  const filteredTickets = statusFilter === 'all'
-      ? tickets
-      : tickets.filter((ticket) => ticket.status === statusFilter)
+  // Search and paging for the ticket grid
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageResult, setPageResult] = useState<PagedResult<ServiceTicket> | null>(null)
 
   // Count badges for each filter pill
   const counts = {
@@ -69,7 +74,7 @@ function App() {
   const [role, setRole] = useState(() => getRole())
   const isAdmin = role === 'Admin'
 
-  // 3. Fetch tickets from C# API
+  // 3. Fetch all tickets from C# API (used for the counts)
   const loadTickets = async () => {
     try {
       const data = await getTickets()
@@ -83,10 +88,26 @@ function App() {
     }
   }
 
-  // Refresh button: show the spinner, then reload tickets
+  // Fetch one page of tickets for the grid
+  const loadPage = useCallback(async () => {
+    try {
+      const status = statusFilter === 'all' ? null : statusFilter
+      const data = await searchTickets(search, status, page, PAGE_SIZE)
+      setPageResult(data)
+    } catch (err) {
+      console.error('Failed to search tickets', err)
+    }
+  }, [search, statusFilter, page])
+
+  // Reload counts and the current page after a change
+  const refresh = async () => {
+    await Promise.all([loadTickets(), loadPage()])
+  }
+
+  // Refresh button: show the spinner, then reload
   const handleRefresh = () => {
     setLoading(true)
-    loadTickets()
+    refresh()
   }
 
   // Load employees for the assign dropdown on each ticket card
@@ -126,14 +147,19 @@ function App() {
     })
   }, [])
 
+  // Wait 300 ms after typing stops, then search
+  useEffect(() => {
+    const timer = setTimeout(loadPage, 300)
+    return () => clearTimeout(timer)
+  }, [loadPage])
+
   // 5. Action: Create Ticket (called by the modal on submit)
   const handleCreateTicket = async (ticket: CreateTicketRequest) => {
     try {
       setSubmitting(true)
       await createTicket(ticket)
-
       setIsModalOpen(false)
-      await loadTickets() // Refresh ticket grid from database
+      await refresh()
     } catch (err) {
       console.error('Failed to create ticket', err)
       alert('Failed to create ticket. Make sure the backend API is running.')
@@ -146,7 +172,7 @@ function App() {
   const handleResolve = async (id: string) => {
     try {
       await resolveTicket(id)
-      await loadTickets() // Refresh list from database
+      await refresh()
     } catch (err) {
       console.error('Failed to resolve ticket', err)
       alert('Failed to resolve ticket.')
@@ -157,7 +183,7 @@ function App() {
   const handleClose = async (id: string) => {
     try {
       await closeTicket(id)
-      await loadTickets() // Refresh list from database
+      await refresh()
     } catch (err) {
       console.error('Failed to close ticket', err)
       alert('Failed to close ticket.')
@@ -169,7 +195,7 @@ function App() {
     if (!confirm('Are you sure you want to delete this ticket?')) return
     try {
       await deleteTicket(id)
-      await loadTickets() // Refresh list from database
+      await refresh()
     } catch (err) {
       console.error('Failed to delete ticket', err)
       alert('Failed to delete ticket.')
@@ -180,11 +206,18 @@ function App() {
   const handleAssign = async (ticketId: string, employeeId: string) => {
     try {
       await assignTicket(ticketId, employeeId)
-      await loadTickets() // Refresh list from database
+      await refresh()
     } catch (err) {
       console.error('Failed to assign ticket', err)
       alert('Failed to assign ticket.')
     }
+  }
+
+  // Clear search and filter, go back to page 1
+  const showAllTickets = () => {
+    setStatusFilter('all')
+    setSearch('')
+    setPage(1)
   }
 
   return (
@@ -300,39 +333,64 @@ function App() {
               </div>
           ) : (
               <>
+                {/* Search Box */}
+                <div className="relative mb-4 max-w-md">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                      type="text"
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value)
+                        setPage(1)
+                      }}
+                      placeholder="Search tickets by title or description..."
+                      className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
                 {/* Status Filter Pills */}
                 <FilterBar
                     statusFilter={statusFilter}
                     counts={counts}
-                    onChange={setStatusFilter}
+                    onChange={(filter) => {
+                      setStatusFilter(filter)
+                      setPage(1)
+                    }}
                 />
 
                 {/* Tickets Grid or Filter Empty State */}
-                {filteredTickets.length === 0 ? (
+                {!pageResult || pageResult.items.length === 0 ? (
                     <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-sm mx-auto">
-                      <p className="text-sm text-slate-500 font-medium mb-3">No tickets match this filter.</p>
+                      <p className="text-sm text-slate-500 font-medium mb-3">No tickets match this search or filter.</p>
                       <button
-                          onClick={() => setStatusFilter('all')}
+                          onClick={showAllTickets}
                           className="text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                       >
                         Show all tickets
                       </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredTickets.map((ticket) => (
-                          <TicketCard
-                              key={ticket.id}
-                              ticket={ticket}
-                              employees={employees}
-                              onAssign={handleAssign}
-                              onResolve={handleResolve}
-                              onClose={handleClose}
-                              onDelete={handleDelete}
-                              canDelete={isAdmin}
-                          />
-                      ))}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {pageResult.items.map((ticket) => (
+                            <TicketCard
+                                key={ticket.id}
+                                ticket={ticket}
+                                employees={employees}
+                                onAssign={handleAssign}
+                                onResolve={handleResolve}
+                                onClose={handleClose}
+                                onDelete={handleDelete}
+                                canDelete={isAdmin}
+                            />
+                        ))}
+                      </div>
+                      <Pagination
+                          page={page}
+                          totalPages={pageResult.totalPages}
+                          onChange={setPage}
+                      />
+                    </>
                 )}
               </>
           )}
