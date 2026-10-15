@@ -16,4 +16,6 @@ public interface ITicketService
     Task UpdateAsync();
     Task<bool> RemoveAsync(Guid id);
     Task<PagedResult<ServiceTicket>> SearchAsync(string? query, TicketStatus? status, int page, int pageSize);
+    Task<List<TicketComment>?> GetCommentsAsync(Guid ticketId);
+    Task<TicketComment?> AddCommentAsync(Guid ticketId, string  text, string author);
 }

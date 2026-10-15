@@ -111,4 +111,26 @@ public class TicketService : ITicketService
             Pagesize = pageSize
         };
     }
+
+    public async Task<List<TicketComment>?> GetCommentsAsync(Guid ticketId)
+    {
+        var ticketExists = await _context.Tickets.AnyAsync(t => t.Id == ticketId);
+        if (!ticketExists) return null;
+        
+        return await _context.TicketComments
+            .Where(c => c.TicketId == ticketId)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<TicketComment?> AddCommentAsync(Guid ticketId, string text, string author)
+    {
+        var ticketExists = await _context.Tickets.AnyAsync(t => t.Id == ticketId);
+        if (!ticketExists) return null;
+
+        var comment = new TicketComment(ticketId, text.Trim(), author);
+        _context.TicketComments.Add(comment);
+        await _context.SaveChangesAsync();
+        return comment;
+    }
 }
