@@ -14,6 +14,7 @@ public class ServiceFlowDbContext : DbContext
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<ServiceTicket> Tickets => Set<ServiceTicket>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<TicketComment> TicketComments => Set<TicketComment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,18 @@ public class ServiceFlowDbContext : DbContext
                     .HasColumnName("EstimatedCost_Currency")
                     .HasMaxLength(10);
             });
+        });
+
+        modelBuilder.Entity<TicketComment>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Text).IsRequired().HasMaxLength(1000);
+            entity.Property(c => c.Author).IsRequired().HasMaxLength(50);
+
+            entity.HasOne<ServiceTicket>()
+                .WithMany()
+                .HasForeignKey(c => c.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
