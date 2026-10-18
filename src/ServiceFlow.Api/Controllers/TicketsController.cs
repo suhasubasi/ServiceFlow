@@ -195,7 +195,7 @@ public class TicketsController : ControllerBase
 
         var author = User.Identity?.Name ?? "unknown";
         var comment = await _ticketService.AddCommentAsync(id, request.Text, author);
-        return comment is null ? NotFound() : Ok(comment);
+        return comment is null ? NotFound() : Created($"/api/tickets/{id}/comments", comment);
     }
 
 
