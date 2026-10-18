@@ -85,3 +85,12 @@ export interface PagedResult<T> {
   pageSize: number
   totalPages: number
 }
+
+// 9. Entity matching C# TicketComment
+export interface TicketComment {
+  id: string 
+  ticketId: string
+  text: string
+  author: string
+  createdAt: string
+}

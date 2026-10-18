@@ -382,6 +382,7 @@ function App() {
                                 onClose={handleClose}
                                 onDelete={handleDelete}
                                 canDelete={isAdmin}
+                                isLoggedIn={isLoggedIn}
                             />
                         ))}
                       </div>

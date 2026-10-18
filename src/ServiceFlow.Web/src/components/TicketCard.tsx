@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Wrench, CheckCircle2, Clock, Trash2, Check, Archive } from 'lucide-react'
 import type { ServiceTicket, Employee } from '../types'
 import { TicketStatus, TicketPriority } from '../types'
+import CommentSection from './CommentSection'
 
 interface TicketCardProps {
   ticket: ServiceTicket
@@ -11,6 +12,7 @@ interface TicketCardProps {
   onResolve: (ticketId: string) => void
   onClose: (ticketId: string) => void
   onDelete: (ticketId: string) => void
+  isLoggedIn: boolean
 }
 
 // Helper for Status Badge styling
@@ -46,7 +48,7 @@ function getPriorityBadge(priority: number) {
 }
 
 // NEW: canDelete added to the destructured props
-function TicketCard({ ticket, employees, canDelete, onAssign, onResolve, onClose, onDelete }: TicketCardProps) {
+function TicketCard({ ticket, employees, canDelete, isLoggedIn, onAssign, onResolve, onClose, onDelete }: TicketCardProps) {
   // Which employee is selected in this card's dropdown
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
 
@@ -139,6 +141,8 @@ function TicketCard({ ticket, employees, canDelete, onAssign, onResolve, onClose
             </button>
           )}
         </div>
+
+        <CommentSection ticketId={ticket.id} isLoggedIn={isLoggedIn}/>
       </div>
     </div>
   )

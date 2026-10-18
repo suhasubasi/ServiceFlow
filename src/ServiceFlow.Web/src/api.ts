@@ -6,7 +6,8 @@ import type {
     CreateCustomerRequest,
     CreateEmployeeRequest,
     PagedResult,
-    TicketStatus
+    TicketStatus,
+    TicketComment
 } from './types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5021/api'
@@ -226,4 +227,28 @@ export async function createEmployee(employee: CreateEmployeeRequest): Promise<E
         throw new Error(await getErrorMessage(response, 'Failed to create employee'))
     }
     return response.json()
+}
+
+// 11. Fetch comments via GET /api/tickets/{id}/comments
+export async function getComments(ticketId: string): Promise<TicketComment[]> {
+    const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/comments`)
+    if (!response.ok) {
+        throw new Error('Failed to fetch comments')
+    }
+    return response.json()
+}
+
+// 12. Add a comment via POST /api/tickets/{id}/comments
+export async function addComment(ticketId: string, text: string): Promise<TicketComment> {
+    const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/comments`, {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ text }),
+    })
+    checkAuth(response)
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response, 'Failed to add comment'))
+    }
+    return response.json()
+    
 }
