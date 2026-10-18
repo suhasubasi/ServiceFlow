@@ -179,5 +179,24 @@ public class TicketsController : ControllerBase
 
     }
 
+    [HttpGet("{id:guid}/comments")] 
+    public async Task<IActionResult> GetComments(Guid id)
+    {
+        var comments = await _ticketService.GetCommentsAsync(id);
+        return comments is null ? NotFound() : Ok(comments);
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/comments")]
+    public async Task<IActionResult> AddComment(Guid id, CreateCommentRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Text))
+            return BadRequest("Comment cannot be empty.");
+
+        var author = User.Identity?.Name ?? "unknown";
+        var comment = await _ticketService.AddCommentAsync(id, request.Text, author);
+        return comment is null ? NotFound() : Created($"/api/tickets/{id}/comments", comment);
+    }
+
 
 }

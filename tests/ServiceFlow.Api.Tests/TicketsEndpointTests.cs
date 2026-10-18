@@ -18,9 +18,12 @@ public class TicketsEndpointTests : IClassFixture<ServiceFlowApiFactory>
 
     // Small type to read a paged response
     private record PagedResponse(List<IdResponse> Items, int TotalCount, int Page, int PageSize, int TotalPages);
+    
+    // Small type to read a comment
+    private record CommentResponse(Guid Id, string Text, string Author);
 
     // Creates a customer and a ticket with the given title
-    private async Task CreateTicketAsync(string title)
+    private async Task<Guid> CreateTicketAsync(string title)
     {
         var customerResponse = await _client.PostAsJsonAsync("/api/customers", new
         {
@@ -40,6 +43,9 @@ public class TicketsEndpointTests : IClassFixture<ServiceFlowApiFactory>
             estimatedCostAmount = 100
         });
         response.EnsureSuccessStatusCode();
+
+        var ticket = await response.Content.ReadFromJsonAsync<IdResponse>();
+        return ticket!.Id;
     }
 
     [Fact]
@@ -160,5 +166,65 @@ public class TicketsEndpointTests : IClassFixture<ServiceFlowApiFactory>
         Assert.Equal(3, page2!.TotalCount);
         Assert.Equal(2, page2.TotalPages);
         Assert.Single(page2.Items);
+    }
+
+    [Fact]
+    public async Task GetComments_WithUnknownTicket_ShouldReturn404()
+    {
+        var response = await _client.GetAsync($"/api/tickets/{Guid.NewGuid()}/comments");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AddComment_WithoutToken_ShouldReturn401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            $"/api/tickets/{Guid.NewGuid()}/comments", new { text = "Hello" });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AddComment_WithEmptyText_ShouldReturn400()
+    {
+        await AuthHelper.AuthenticateAsync(_client);
+        var ticketId = await CreateTicketAsync("Comment empty test");
+
+        var response = await _client.PostAsJsonAsync(
+            $"/api/tickets/{ticketId}/comments", new { text = " "});
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AddComment_AsTechnician_ShouldReturn201WithAuthor()
+    {
+        await AuthHelper.AuthenticateAsync(_client);
+        var ticketId = await CreateTicketAsync("Comment author test");
+        await AuthHelper.AuthenticateAsync(_client, "tech", "tech123");
+
+        var response = await _client.PostAsJsonAsync(
+            $"/api/tickets/{ticketId}/comments", new { text = "Replaced the cable" });
+        var comment = await response.Content.ReadFromJsonAsync<CommentResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("tech", comment!.Author);       
+    }
+
+    [Fact]
+    public async Task GetComments_ShouldReturnOldestFirst()
+    {
+        await AuthHelper.AuthenticateAsync(_client);
+        var ticketId = await CreateTicketAsync("Comment order test");
+        await _client.PostAsJsonAsync($"/api/tickets/{ticketId}/comments", new { text = "First" });
+        await _client.PostAsJsonAsync($"/api/tickets/{ticketId}/comments", new { text = "Second" });
+
+        var comments = await _client.GetFromJsonAsync<List<CommentResponse>>(
+            $"/api/tickets/{ticketId}/comments");
+
+        Assert.Equal(2, comments!.Count);
+        Assert.Equal("First", comments[0].Text);
+        Assert.Equal("Second", comments[1].Text); 
     }
 }
