@@ -1,88 +1,84 @@
 # ServiceFlow
 
-A full-stack service desk application where companies can manage customer support tickets. Built with **ASP.NET Core 10 Web API** on the backend and **React 19 + TypeScript** on the frontend, with **PostgreSQL** as the database.
+A full-stack service desk app where a company can manage support tickets for its customers. I built it to learn **ASP.NET Core**, **EF Core**, **PostgreSQL** and **React + TypeScript** by doing a real project from start to finish.
 
-The whole system runs with a single `docker compose up` command.
+**Live demo:** [serviceflow.suhasubasi.se](https://serviceflow.suhasubasi.se)
+(log in with `admin` / `admin123` or `tech` / `tech123`)
 
 ![ServiceFlow Dashboard](docs/dashboard.png)
 
 ## What Does It Do?
 
-ServiceFlow is basically a ticket management system for field service / IT support companies. You can:
+ServiceFlow is a ticket system for IT support or repair companies. A customer calls with a problem (broken screen, network down, etc.), the company creates a ticket, assigns a technician, and follows it until it is done.
 
-- Create support tickets with title, description, priority and estimated cost
-- Assign tickets to employees (technicians)
-- Track ticket status: **Open → In Progress → Resolved → Closed**
-- Filter tickets by status on the dashboard
-- View all customers and employees
-- Add new customers and employees from the dashboard
-- Log in with JWT authentication (creating and changing data needs a login)
+You can:
 
-The idea is that a customer calls with a problem (broken screen, network issue, etc.), and the company creates a ticket, assigns a technician, and tracks it until it's done.
+- Create tickets with title, description, priority and estimated cost
+- Assign tickets to technicians
+- Move tickets through **Open → In Progress → Resolved → Closed**
+- Search tickets by title or description, filter by status, and page through the results
+- Write comments on a ticket (for example "Ordered a new part, arrives Thursday")
+- Add customers and employees
+- Log in with JWT, with two roles: **Admin** and **Technician**
+
+## Roles
+
+| Action | Not logged in | Technician | Admin |
+|--------|:---:|:---:|:---:|
+| View tickets, customers, employees, comments | ✅ | ✅ | ✅ |
+| Create, assign, resolve and close tickets | ❌ | ✅ | ✅ |
+| Add customers and comments | ❌ | ✅ | ✅ |
+| Delete tickets | ❌ | ❌ | ✅ |
+| Add employees | ❌ | ❌ | ✅ |
+
+The backend checks the role (a technician gets `403 Forbidden`). The frontend also hides buttons that the user is not allowed to use.
+
+## Tech Stack
+
+**Backend:** ASP.NET Core 10, Entity Framework Core 10 (Code-First), PostgreSQL, JWT authentication, Swagger
+
+**Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4
+
+**Other:** Docker Compose, xUnit, GitHub Actions, Azure App Service (API), Vercel (frontend)
 
 ## Architecture
 
-The backend follows a **Clean Architecture** (layered) pattern with 3 projects:
+The backend is split into 3 projects:
 
 ```
 ServiceFlow.Api              →  Controllers, DTOs, Middleware (HTTP layer)
     ↓
-ServiceFlow.Infrastructure   →  EF Core DbContext, PostgreSQL services
+ServiceFlow.Infrastructure   →  EF Core DbContext, services, migrations
     ↓
-ServiceFlow.Core             →  Entities, Interfaces, Enums, Value Objects (no dependencies)
+ServiceFlow.Core             →  Entities, interfaces, enums, value objects
 ```
 
-- **Core** has zero external dependencies. It only contains the domain model (entities, enums, interfaces).
-- **Infrastructure** implements the interfaces from Core using Entity Framework Core + PostgreSQL.
-- **API** is the entry point. It registers everything with Dependency Injection and exposes REST endpoints.
+- **Core** has no dependencies. It only has the domain model and the interfaces.
+- **Infrastructure** implements the interfaces with EF Core and PostgreSQL.
+- **Api** is the entry point. It registers everything with Dependency Injection and exposes the REST endpoints.
 
-This way, the business logic doesn't know anything about the database or HTTP — it only knows its own rules.
-
-## Tech Stack
-
-**Backend:**
-- ASP.NET Core 10 (.NET 10)
-- Entity Framework Core 10 (Code-First)
-- PostgreSQL
-- Swagger / OpenAPI
-- JWT Bearer authentication
-
-**Frontend:**
-- React 19
-- TypeScript
-- Vite
-- Tailwind CSS 4
-
-**Other:**
-- Docker & Docker Compose
-- xUnit (unit and integration tests)
-- GitHub Actions (CI)
+This way the business rules don't depend on the database or on HTTP.
 
 ## How to Run
 
 ### Option 1: Docker Compose (easiest)
 
-Just run this in the project root:
-
 ```bash
 docker compose up --build
 ```
 
-This starts 3 containers:
 | Service | URL |
 |---------|-----|
-| PostgreSQL Database | `localhost:5432` |
-| ASP.NET Core API | `http://localhost:5021` |
-| React Frontend | `http://localhost:5173` |
+| PostgreSQL | `localhost:5432` |
+| API | `http://localhost:5021` |
+| Frontend | `http://localhost:5173` |
 
-The database gets created and seeded with demo data automatically on first run.
+The database is created and filled with demo data on the first run.
 
-### Option 2: Run Manually
+### Option 2: Run manually
 
-If you want to run without Docker:
-
-1. Make sure you have **PostgreSQL** running on `localhost:5432` with a database called `serviceflow`
-2. Start the backend:
+1. Start PostgreSQL (for example only the database container: `docker compose up -d db`)
+2. Start the API:
    ```bash
    cd src/ServiceFlow.Api
    dotnet run
@@ -94,91 +90,80 @@ If you want to run without Docker:
    npm run dev
    ```
 
-## Demo Login
+## Demo Logins
 
-To create or change data in the app you need to log in:
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `admin123` | Admin |
+| `tech` | `tech123` | Technician |
 
-| Username | Password |
-|----------|----------|
-| `admin` | `admin123` |
-
-These are demo credentials from `appsettings.json` (`Auth:DemoUsername` / `Auth:DemoPassword`). They are only for local development and should be changed (together with the `Jwt:Key` secret) in a real deployment.
+The users are stored in the database with hashed passwords and are seeded on startup from `appsettings.json`. These are demo values only. In production they (and `Jwt:Key`) are set as app settings in Azure.
 
 ## API Endpoints
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/api/auth/login` | No | Log in and get a JWT token |
-| GET | `/api/tickets` | No | Get all tickets |
-| GET | `/api/tickets/{id}` | No | Get ticket by ID |
-| GET | `/api/tickets/customer/{customerId}` | No | Get tickets for a customer |
-| GET | `/api/tickets/employee/{employeeId}` | No | Get tickets for an employee |
-| POST | `/api/tickets` | Yes | Create a new ticket |
-| PUT | `/api/tickets/{id}/assign` | Yes | Assign ticket to employee |
-| PUT | `/api/tickets/{id}/resolve` | Yes | Mark ticket as resolved |
-| PUT | `/api/tickets/{id}/close` | Yes | Close a ticket |
-| DELETE | `/api/tickets/{id}` | Yes | Delete a ticket |
-| GET | `/api/customers` | No | Get all customers |
-| GET | `/api/customers/{id}` | No | Get customer by ID |
-| POST | `/api/customers` | Yes | Create a new customer |
-| GET | `/api/employees` | No | Get all employees |
-| GET | `/api/employees/{id}` | No | Get employee by ID |
-| POST | `/api/employees` | Yes | Create a new employee |
+| POST | `/api/auth/login` | – | Log in and get a JWT token |
+| GET | `/api/tickets` | – | Get all tickets |
+| GET | `/api/tickets/search?query=&status=&page=&pageSize=` | – | Search, filter and page tickets |
+| GET | `/api/tickets/{id}` | – | Get one ticket |
+| GET | `/api/tickets/customer/{customerId}` | – | Tickets for a customer |
+| GET | `/api/tickets/employee/{employeeId}` | – | Tickets for an employee |
+| POST | `/api/tickets` | Login | Create a ticket |
+| PUT | `/api/tickets/{id}/assign` | Login | Assign a technician |
+| PUT | `/api/tickets/{id}/resolve` | Login | Mark as resolved |
+| PUT | `/api/tickets/{id}/close` | Login | Close a ticket |
+| DELETE | `/api/tickets/{id}` | Admin | Delete a ticket |
+| GET | `/api/tickets/{id}/comments` | – | Get comments, oldest first |
+| POST | `/api/tickets/{id}/comments` | Login | Add a comment |
+| GET | `/api/customers` | – | Get all customers |
+| GET | `/api/customers/{id}` | – | Get one customer |
+| POST | `/api/customers` | Login | Create a customer |
+| GET | `/api/employees` | – | Get all employees |
+| GET | `/api/employees/{id}` | – | Get one employee |
+| POST | `/api/employees` | Admin | Create an employee |
 
-Endpoints marked "Yes" need an `Authorization: Bearer <token>` header.
-
-Swagger UI is available at `http://localhost:5021/swagger` when running in Development mode.
-
-## Project Structure
-
-```
-ServiceFlow/
-├── src/
-│   ├── ServiceFlow.Api/            # Web API (controllers, DTOs, middleware)
-│   ├── ServiceFlow.Core/           # Domain layer (entities, interfaces, enums)
-│   ├── ServiceFlow.Infrastructure/ # Data layer (EF Core, PostgreSQL, migrations)
-│   └── ServiceFlow.Web/            # React frontend
-├── tests/
-│   ├── ServiceFlow.Core.Tests/     # Unit tests (xUnit)
-│   └── ServiceFlow.Api.Tests/      # Integration tests for the API
-├── .github/workflows/              # CI (build + tests)
-├── docker-compose.yml
-└── ServiceFlow.slnx
-```
+Endpoints with "Login" or "Admin" need an `Authorization: Bearer <token>` header. Swagger is at `http://localhost:5021/swagger` in Development mode.
 
 ## Some Design Decisions
 
-- **Money as a Value Object**: Estimated cost is stored as a `record struct` with Amount + Currency, not just a plain decimal. This is a DDD (Domain-Driven Design) pattern that makes the model more expressive.
+- **Money as a value object:** The estimated cost is a `record struct` with Amount and Currency, not just a decimal.
+- **State changes on the entity:** The controller calls `ticket.Resolve()` or `ticket.Close()` instead of setting the status directly, so the rules stay inside the entity.
+- **Global error handling:** A middleware catches unhandled exceptions and returns a clean ProblemDetails JSON, so the client never sees a stack trace.
+- **Validation:** The request DTOs use Data Annotations, so bad input gets a `400` before it reaches the domain.
+- **Search on the server:** Search and paging are done in the database with `IQueryable`, `ILIKE` and `Skip`/`Take`, so the API never sends all tickets at once.
+- **Comment author from the token:** When you post a comment, the author is read from the JWT, so you can't write a comment as someone else.
+- **Cascade delete:** When a ticket is deleted, its comments are deleted too.
+- **Auto-migration on startup:** The API applies EF Core migrations and seeds demo data when it starts.
 
-- **State transitions on the entity**: Instead of setting `ticket.Status = Resolved` from the controller, the entity has methods like `ticket.Resolve()` and `ticket.Close()`. This keeps the business rules inside the domain model, not scattered across controllers.
-
-- **Global exception handling**: There is a middleware (`ExceptionHandlingMiddleware`) that catches all unhandled exceptions and returns a clean JSON error response using the RFC 7807 ProblemDetails format. So the API never returns raw stack traces to the client.
-
-- **Auto-migration on startup**: When the API starts, it automatically applies any pending EF Core migrations and seeds demo data. This makes it easy to just start the app and have everything ready.
-
-- **JWT authentication**: Anyone can read data (GET endpoints), but creating, assigning, resolving, closing and deleting need a login. The user logs in at `POST /api/auth/login` and gets a JWT token, which the frontend sends with every write request.
-
-- **Request validation**: The request DTOs use Data Annotations, so wrong input (empty title, bad email, etc.) is rejected with a 400 before it reaches the domain.
-
-## Running Tests
+## Tests
 
 ```bash
 dotnet test
 ```
 
-There are two test projects:
+- `tests/ServiceFlow.Core.Tests`: unit tests for the domain (ticket status rules, Money, etc.)
+- `tests/ServiceFlow.Api.Tests`: integration tests that call the real API against PostgreSQL (auth, roles, customers, employees, tickets, search, comments)
 
-- `tests/ServiceFlow.Core.Tests` – xUnit unit tests for the domain logic (ticket state transitions, preventing changes to closed tickets, Money value object arithmetic).
-- `tests/ServiceFlow.Api.Tests` – integration tests that call the real API endpoints (auth, customers, employees, tickets) against a PostgreSQL database.
+The API tests need PostgreSQL on `localhost:5432`.
 
-The API tests need PostgreSQL running on `localhost:5432`. The GitHub Actions workflow starts a Postgres container for this automatically.
+## CI/CD
 
-## CI
+GitHub Actions runs on every push and pull request to `main`:
 
-A GitHub Actions workflow (`.github/workflows`) runs on every push and pull request to `main`. It builds the solution and runs all tests, and it also builds the React frontend.
+1. Builds the API and runs all tests against a Postgres container
+2. Lints and builds the React frontend
+3. Deploys the API to Azure App Service (on `main` only)
 
-## Known Limitations & Roadmap
+The frontend is deployed automatically by Vercel.
 
-This project focuses primarily on clean backend architecture, domain modeling, and database integration. Areas planned for future iterations include:
+## What I Learned
 
-- **Roles**: Right now any logged-in user can do all write actions. The plan is to add roles so technicians only see assigned tickets and administrators have full dispatch control.
+- How to structure an ASP.NET Core API in layers and use Dependency Injection
+- EF Core Code-First: entities, relationships, migrations and seeding
+- JWT login, hashed passwords and role-based authorization
+- Writing integration tests and finding bugs that only showed up in CI
+- Connecting a React + TypeScript frontend to a REST API
+- Working with branches, pull requests and small commits
+- Deploying to Azure and Vercel
+
